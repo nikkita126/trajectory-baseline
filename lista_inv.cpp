@@ -10,8 +10,8 @@
 #include "btree_map.h"
 #include "cppUtils.h"
 
-#define IF_TRAYECTORIAS "/home/cathy/Magister/Tesis/mapping_paraderos/trayectorias_codificadas_ordenadas.txt"
-//#define IF_TRAYECTORIAS "/home/cathy/Magister/Tesis/baseline/trayectorias_muestra.txt"
+//#define IF_TRAYECTORIAS "/home/cathy/Magister/Tesis/mapping_paraderos/trayectorias_codificadas_ordenadas.txt"
+#define IF_TRAYECTORIAS "/home/cathy/Magister/Tesis/baseline/trayectorias_muestra.txt"
 
 #define N_TRAYECTORIAS 100
 #define N_NODOS 100
@@ -30,6 +30,111 @@ typedef struct columnas_tabla{
 	uint max;
 
 } columnas_tabla;
+
+int getStartingId(uint n_in, uint t_in, bool origin_only, btree_map<uint,vector<pair<uint,uint> > > &lista_trayectorias, btree_map<uint,btree_map<uint,btree_set<uint> > > &indice){
+    /* argumentos: 
+        * nodo inicial de la consulta
+        * tiempo inicial de la consulta
+        * flag para determinar si solo considerar pares (n,t) que inicien una trayectoria
+        * lista de trayectorias
+        * metodo de acceso a la lista
+    */
+
+    /* punto de inicio */
+
+    auto l_b = indice[n_in].lower_bound(t_in);
+    const uint *actual_starting_time=&l_b->first;
+    btree_set<uint> *id_list=&l_b->second;
+    //uint asdf=*l_b->second;
+
+    //cout<<"lb: "<<l_b->first<<endl;
+
+    //if(l_b->first >= t_fin){
+    if(l_b->first > (t_in + DELTA_T)){
+            //tiempo fuera de rango
+            cout<<"fuera de rango"<<endl;
+            return -1;
+    }
+
+    if(origin_only){
+
+        uint tam_lista_ids = id_list->size();
+
+        uint l=0, r=tam_lista_ids-1, m, tray_id;
+        uint first_node, first_time;
+
+        while(l<r){
+            
+            m=l+(r-l)/2;
+            tray_id = *(id_list+m);
+            first_node=indice[tray_id].begin()->first;
+            first_time=indice[tray_id].begin()->second;
+
+          /*  if(lista_trayectorias[tray_id].begin()<make_pair(n_in,*actual_starting_time)){ /* trayectorias "menores" que la buscada */
+          /*      l=m+1;
+
+            }
+            else
+                r=m*/
+        }
+        return l;
+    }
+    else {
+
+        /* para trayectorias potenciales */
+
+    }
+
+    return -1;
+
+}
+
+void printTrajectories(btree_map<uint,vector<pair<uint,uint> > > &lista_trayectorias, uint cont_trayectorias){
+   /* RECORRER E IMPRIMIR TRAYECTORIAS */
+    
+    cout<<"Lista de trayectorias generadas"<<endl;
+
+    for(auto i=0;i<=cont_trayectorias;i++){
+        auto tam_trayectoria = lista_trayectorias[i].size();
+
+        for(auto j=0;j<tam_trayectoria;j++){
+            if(j) cout<<" ";
+            cout<<"("<<lista_trayectorias[i][j].first<<","<<lista_trayectorias[i][j].second<<")";
+        }
+        cout<<endl;
+    }
+}
+
+void printIndex(btree_map<uint,btree_map<uint,btree_set<uint> > > &indice){
+    /* RECORRER E IMPRIMIR INDICE */
+    int tam_ids,max_ids=0;
+    int tam_tiempos,max_tiempos=0;
+
+    for(auto i=indice.begin();i!=indice.end();i++){
+
+       // cout<<"***** "<<i->first<<": *****"<<endl;
+
+        tam_tiempos=i->second.size();
+        if(tam_tiempos>max_tiempos) max_tiempos = tam_tiempos;
+
+        for(auto j=i->second.begin();j!=i->second.end();j++){
+         //   cout<<i->first<<"    "<<j->first<<":";
+            tam_ids=j->second.size();
+
+            if(tam_ids>max_ids) max_ids=tam_ids;
+
+            for(auto k=j->second.begin();k!=j->second.end();k++){
+           //     cout<<" "<<*k;
+            }
+            //cout<<endl;
+
+        }
+    }
+
+    cout<<"# en lista mas larga de tiempos: "<<max_tiempos<<endl;
+    cout<<"# en lista mas larga de ids: "<<max_ids<<endl;
+
+}
 
 
 int main(){
@@ -55,8 +160,8 @@ int main(){
 
 	string str_trayectoria;
 	size_t parada_fin, tiempo_fin;
-	int parada,tiempo;
-	int cont_trayectorias;
+	uint parada,tiempo;
+	uint cont_trayectorias;
     
     if(archivo_trayectorias){
 		cout<<"Generando diccionario de trayectorias e índice"<<endl;
@@ -97,55 +202,10 @@ int main(){
 
     archivo_trayectorias.close();
 
-    /* RECORRER E IMPRIMIR TRAYECTORIAS */
-   /* 
-    cout<<"Lista de trayectorias generadas"<<endl;
+    //printTrajectories(lista_trayectorias, cont_trayectorias);
+	printIndex(indice);
 
-    for(auto i=0;i<=cont_trayectorias;i++){
-    	auto tam_trayectoria = lista_trayectorias[i].size();
 
-    	for(auto j=0;j<tam_trayectoria;j++){
-    		if(j) cout<<" ";
-    		cout<<"("<<lista_trayectorias[i][j].first<<","<<lista_trayectorias[i][j].second<<")";
-    	}
-    	cout<<endl;
-    }
-	
-
-	/* RECORRER E IMPRIMIR INDICE */
-	/*int tam_ids,max_ids=0;
-	int tam_tiempos,max_tiempos=0;
-
-    for(auto i=indice.begin();i!=indice.end();i++){
-
-    	cout<<"***** "<<i->first<<": *****"<<endl;
-
-    	tam_tiempos=i->second.size();
-    	if(tam_tiempos>max_tiempos) max_tiempos = tam_tiempos;
-
-    	for(auto j=i->second.begin();j!=i->second.end();j++){
-    		cout<<i->first<<"    "<<j->first<<":";
-    		tam_ids=j->second.size();
-
-    		if(tam_ids>max_ids) max_ids=tam_ids;
-
-    		for(auto k=j->second.begin();k!=j->second.end();k++){
-    			cout<<" "<<*k;
-    		}
-    		cout<<endl;
-
-    	}
-    }
-
-    cout<<"# en lista mas larga de tiempos: "<<max_tiempos<<endl;
-    cout<<"# en lista mas larga de ids: "<<max_ids<<endl;
-
-*/
-/*
-    cout<<lista_trayectorias<<endl;
-    cout<<"--------------"<<endl;
-    cout<<indice<<endl;
-    */
 
 bool consultas = true;
 
@@ -168,6 +228,7 @@ if(consultas){
 
     	cout<<"CONSULTAS: \nEspecificar nodo inicial, tiempo inicial, radio (en intervalos): ";
 
+        bool origin_only = true; /* CAMBIAR SI SE QUIERE INCORPORAR EN LA CONSULTA */
 
     	cin>>n_in>>t_in>>t_interval;
 
@@ -184,22 +245,11 @@ if(consultas){
     	cola_puntos.clear();
     	tabla_resultados.clear();
 
-    	/* punto de inicio */
+    	int starting_id = getStartingId(n_in, t_in, origin_only, lista_trayectorias, indice); //NO ES APROPIADO PARA ENCONTRAR TRAYECTORIAS QUE SOLO INICIAN EN (n_in,t_in)
+        cout<<starting_id<<endl;
+        if(starting_id == -1) continue; /* no se puede realizar la consulta */
 
-    	auto l_b = indice[n_in].lower_bound(t_in);
-
-        cout<<"lb: "<<l_b->first<<endl;
-
-    	//if(l_b->first >= t_fin){
-    	if(l_b->first > (t_in + DELTA_T)){
-    			//tiempo fuera de rango
-    			cout<<"fuera de rango"<<endl;
-    			continue;
-    	}
-
-    	auto starting_id = l_b->second.begin();
-
-    	uint i = *starting_id;
+    	uint i = starting_id;
     	uint tam_lista = lista_trayectorias.size();
 
         cout<<"____"<<tam_lista<<endl;
@@ -290,11 +340,11 @@ if(guardar){
     out.open("diccionario.b",ios::binary);
 
     //cds_utils::saveValue<btree_map<uint,vector<pair<uint,uint> > > >(out,&lista_trayectorias,1);
-    cds_utils::saveValue<int>(out,&cont_trayectorias,1);
+    cds_utils::saveValue<uint>(out,&cont_trayectorias,1);
 
     for(uint i=0;i<=cont_trayectorias;i++){
-        int tam_trayectoria = lista_trayectorias[i].size();
-        cds_utils::saveValue<int>(out,&tam_trayectoria,1);
+        uint tam_trayectoria = lista_trayectorias[i].size();
+        cds_utils::saveValue<uint>(out,&tam_trayectoria,1);
        // cds_utils::saveValue<pair<uint,uint> >(out,&lista_trayectorias[i],tam_trayectoria);
     }
 

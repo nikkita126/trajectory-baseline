@@ -1,5 +1,5 @@
-#ifndef _TDICTIONARY_H_
-#define _TDICTIONARY_H_
+#ifndef _TDICTIONARYREADER_H_
+#define _TDICTIONARYREADER_H_
 
 
 #include <iostream>
@@ -22,7 +22,7 @@ using namespace btree;
 using namespace std;
 using namespace cds_utils;
 
-class TDictionary {
+class TDictionaryReader {
 public:
 	uint trips; /* number of trips (trajectories) */
 	uint stops; /* total number of stops */
@@ -30,7 +30,13 @@ public:
 
 	btree_map<uint,vector<pair<uint,uint> > > TList; /* list of trajectories */
 
-	TDictionary(uint t, uint s, uint m){
+	TDictionaryReader(){
+		trips=0;
+		stops=0;
+		maxtime=0;
+	}
+
+	TDictionaryReader(uint t, uint s, uint m){
 		trips = t;
 		stops = s;
 		m = t;
@@ -42,14 +48,18 @@ public:
 
 	}
 
-	/*void save(ofstream &outfile){
-		saveValue<
+	void setTrips(uint tr){
+		this.trips=tr;
 	}
-	*/
 
-	static TDictionary* load(ifstream &infile){
-
+	void setStops(uint st){
+		this.stops=st;
 	}
+
+	void setMaxtime(uint mt){
+		this.maxtime=mt;
+	}
+
 
 };
 

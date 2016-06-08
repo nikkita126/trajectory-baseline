@@ -70,7 +70,6 @@ public:
 			copy(total_times.begin(),total_times.end(),tlist[i].times_list);
 		}
 
-
 	}
 
 
@@ -82,6 +81,14 @@ public:
 			cds_utils::saveValue<uint>(outfile,tlist[i].stops_list,tlist[i].n_stops);
 			cds_utils::saveValue<uint>(outfile,tlist[i].times_list,tlist[i].n_stops);
 		}
+	}
+
+	void saveDataOnly(ofstream &outfile){
+		for(uint i=0;i<trips;i++){
+			cds_utils::saveValue<uint>(outfile,tlist[i].stops_list,tlist[i].n_stops);
+			cds_utils::saveValue<uint>(outfile,tlist[i].times_list,tlist[i].n_stops);
+		}
+		
 	}
 	
 
@@ -114,6 +121,16 @@ public:
 		}
 
 		cout<<"FIN!"<<endl;
+	}
+
+	void print(uint id){
+		cout<<"Trayectoria nro: "<<id<<endl;
+
+	    for(auto j=0;j<tlist[id].n_stops;j++){
+	        if(j) cout<<" ";
+	        cout<<"("<<tlist[id].stops_list[j]<<","<<tlist[id].times_list[j]<<")";
+	    }
+	    cout<<endl;
 	}
 
 };

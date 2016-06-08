@@ -10,12 +10,12 @@
 #include "btree_map.h"
 #include "cppUtils.h"
 
-//#define IF_TRAYECTORIAS "/home/cathy/Magister/Tesis/mapping_paraderos/trayectorias_codificadas_ordenadas.txt"
-#define IF_TRAYECTORIAS "/home/cathy/Magister/Tesis/baseline/trayectorias_muestra.txt"
+#define IF_TRAYECTORIAS "/home/cathy/Magister/Tesis/mapping_paraderos/trayectorias_codificadas_ordenadas.txt"
+//#define IF_TRAYECTORIAS "/home/cathy/Magister/Tesis/baseline/trayectorias_muestra.txt"
 
 #define N_TRAYECTORIAS 100
 #define N_NODOS 100
-#define DELTA_T 1 /* ventana de espera, en intervalos */
+#define DELTA_T 0 /* ventana de espera, en intervalos */
 #define INF 99999999
 #define OUT_FOLDER "single_query_data"
 
@@ -31,6 +31,18 @@ typedef struct columnas_tabla{
 
 } columnas_tabla;
 
+void to_vector(btree_set<uint> &bt, vector<uint> &v){
+
+    v.clear();
+
+    for(auto i=bt.begin();i!=bt.end();i++){
+        v.push_back(*i);
+
+    }
+
+
+}
+
 int getStartingId(uint n_in, uint t_in, bool origin_only, btree_map<uint,vector<pair<uint,uint> > > &lista_trayectorias, btree_map<uint,btree_map<uint,btree_set<uint> > > &indice){
     /* argumentos: 
         * nodo inicial de la consulta
@@ -43,41 +55,50 @@ int getStartingId(uint n_in, uint t_in, bool origin_only, btree_map<uint,vector<
     /* punto de inicio */
 
     auto l_b = indice[n_in].lower_bound(t_in);
-    const uint *actual_starting_time=&l_b->first;
-    btree_set<uint> *id_list=&l_b->second;
+    uint actual_starting_time=l_b->first;
+
+
     //uint asdf=*l_b->second;
 
     //cout<<"lb: "<<l_b->first<<endl;
 
     //if(l_b->first >= t_fin){
-    if(l_b->first > (t_in + DELTA_T)){
+    if(actual_starting_time > (t_in + DELTA_T)){
             //tiempo fuera de rango
             cout<<"fuera de rango"<<endl;
             return -1;
     }
 
+    vector<uint> ids_vector;
+
+    to_vector(l_b->second, ids_vector);
+
     if(origin_only){
 
-        uint tam_lista_ids = id_list->size();
+        uint tam_lista_ids = ids_vector.size();
 
         uint l=0, r=tam_lista_ids-1, m, tray_id;
         uint first_node, first_time;
+        pair<uint,uint> tmp_pair;
 
         while(l<r){
             
             m=l+(r-l)/2;
-            tray_id = *(id_list+m);
-            first_node=indice[tray_id].begin()->first;
-            first_time=indice[tray_id].begin()->second;
+            tray_id = ids_vector[m];
+            first_node=lista_trayectorias[tray_id][0].first;
+            first_time=lista_trayectorias[tray_id][0].second;
+            tmp_pair=make_pair(n_in,actual_starting_time);
 
-          /*  if(lista_trayectorias[tray_id].begin()<make_pair(n_in,*actual_starting_time)){ /* trayectorias "menores" que la buscada */
-          /*      l=m+1;
+            if(lista_trayectorias[tray_id][0] < tmp_pair){ /* trayectorias "menores" que la buscada */
+                l=m+1;
 
             }
             else
-                r=m*/
+                r=m;
+
+//            cout<<"l: "<<l<<" m: "<<m<<" r: "<<r<<endl;
         }
-        return l;
+        return ids_vector[l];
     }
     else {
 
@@ -94,7 +115,7 @@ void printTrajectories(btree_map<uint,vector<pair<uint,uint> > > &lista_trayecto
     
     cout<<"Lista de trayectorias generadas"<<endl;
 
-    for(auto i=0;i<=cont_trayectorias;i++){
+    for(auto i=0;i<cont_trayectorias;i++){
         auto tam_trayectoria = lista_trayectorias[i].size();
 
         for(auto j=0;j<tam_trayectoria;j++){
@@ -192,7 +213,7 @@ int main(){
 					break;
 
     		} /* fin iteracion sobre una misma trayectoria */
-
+            //cout<<"tam lista: "<<lista_trayectorias.size()<<endl;
 			cont_trayectorias++;
 
     	}
@@ -203,9 +224,7 @@ int main(){
     archivo_trayectorias.close();
 
     //printTrajectories(lista_trayectorias, cont_trayectorias);
-	printIndex(indice);
-
-
+	//printIndex(indice);
 
 bool consultas = true;
 
@@ -244,29 +263,31 @@ if(consultas){
 
     	cola_puntos.clear();
     	tabla_resultados.clear();
-
+//cout<<"tam lista: "<<lista_trayectorias.size()<<endl;
     	int starting_id = getStartingId(n_in, t_in, origin_only, lista_trayectorias, indice); //NO ES APROPIADO PARA ENCONTRAR TRAYECTORIAS QUE SOLO INICIAN EN (n_in,t_in)
-        cout<<starting_id<<endl;
+//        cout<<"Starting id: "<<starting_id<<endl;
+        //cout<<"tam lista: "<<lista_trayectorias.size()<<endl;
         if(starting_id == -1) continue; /* no se puede realizar la consulta */
 
     	uint i = starting_id;
     	uint tam_lista = lista_trayectorias.size();
 
-        cout<<"____"<<tam_lista<<endl;
-        cout<<"----"<<i<<" ---- "<<lista_trayectorias[i].begin()->first<<" ---- "<<lista_trayectorias[i].begin()->second<<endl;
+//cout<<"____"<<tam_lista<<endl;
+//        cout<<"----"<<i<<" ---- "<<lista_trayectorias[i].begin()->first<<" ---- "<<lista_trayectorias[i].begin()->second<<endl;
 
     	// comienza en cualquier tiempo dentro del rango
+
     	//while(i<tam_lista && lista_trayectorias[i].begin()->first==n_in && lista_trayectorias[i].begin()->second < t_fin){
         int cont_destinos=0;
 
     	//comienza en el tiempo inicial dado o a lo más en una ventana posible, dado el tiempo de espera promedio
     	while(i<tam_lista && lista_trayectorias[i].begin()->first==n_in && lista_trayectorias[i].begin()->second <= t_in + DELTA_T){ // NO FUNCIONA
     	// recorrer lista de trayectorias hasta estar fuera de rango de tiempo
-    		cout<<i<<endl;
+ //   		cout<<"revisando trayectoria: "<<i<<endl;
     		uint tiempo_inicial_viaje=lista_trayectorias[i].begin()->second;
 
     		for(auto j=lista_trayectorias[i].begin();j!=lista_trayectorias[i].end();j+=2){
-    			cout<<j->first<<" "<<j->second<<endl;
+//    			cout<<j->first<<" "<<j->second<<endl;
     			auto destino=j+1;
     			if(destino->second >= tiempo_inicial_viaje+t_interval)
     				break;
@@ -303,13 +324,14 @@ if(consultas){
 
     	}
 
-        cout<<"------"<<cont_destinos<<endl;
+//        cout<<"------"<<cont_destinos<<endl;
 
     	//cout<<n_in<<"\t"<<t_in<<"\t"<<t_fin<<endl;
     	//cout<<"NODO\tSUMA\tCANT\tMIN\tMAX"<<endl;
 
     	ofstream archivo_tabla;
-    	string nombre_archivo=to_string(n_in)+"_"+to_string(t_in)+"_"+to_string(t_interval)+".csv";
+        string folder_name=OUT_FOLDER;
+    	string nombre_archivo=folder_name+"/"+to_string(n_in)+"_"+to_string(t_in)+"_"+to_string(t_interval)+".csv";
     	archivo_tabla.open(nombre_archivo);
 
 

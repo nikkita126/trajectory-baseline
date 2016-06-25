@@ -38,41 +38,15 @@ public:
 		m = t;
 	}
 
-	void addPoint(uint id, uint stop, uint time){
-		/* adds the point (stop,time) to the list identified by 'id'*/
-		tlist[id].push_back(make_pair(stop,time));
+	void addPoint(uint id, uint stop, uint time);
 
-	}
+	void setTrips(uint tr);
 
-	void setTrips(uint tr){
-		trips=tr;
-	}
+	void setStops(uint st);
 
-	void setStops(uint st){
-		stops=st;
-	}
+	void setMaxtime(uint mt);
 
-	void setMaxtime(uint mt){
-		maxtime=mt;
-	}
-
-	void print(){
-
-	   /* RECORRER E IMPRIMIR TRAYECTORIAS */
-    
-		cout<<"Lista de trayectorias generadas"<<endl;
-
-		for(auto i=0;i<trips;i++){
-		    auto tam_trayectoria = tlist[i].size();
-
-		    for(auto j=0;j<tam_trayectoria;j++){
-		        if(j) cout<<" ";
-		        cout<<"("<<tlist[i][j].first<<","<<tlist[i][j].second<<")";
-		    }
-		    cout<<endl;
-		}
-	}
-
+	void print();
 
 };
 

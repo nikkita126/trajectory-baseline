@@ -1,9 +1,7 @@
 /* codeToInt.cpp
-*	Transforma un archivo de trayectorias con codigo de paradero y timestamp
-*	en su version codificada con enteros
-*	TO-DO:
-*	- poner mensajes de error donde corresponda
-
+*	Transforms a trajectory file containing stop names and timestamps
+*	into its encoded version (with ints)
+*
 */
 
 
@@ -14,7 +12,7 @@
 #include <fstream>
 #include <map>
 #include <sstream>
-#include "../include/cppUtils.h"
+#include "cppUtils.h"
 
 #define TIME_INTERVAL 5 // minutes in the discrete time interval
 #define STARTING_DATE_DAY 14
@@ -22,9 +20,9 @@
 
 using namespace std;
 
-void print_usage(){
+void printUsage(){
 
-	printf("\nUSAGE:\n ./codeToInt route/stop_names_and_codes_file.txt route/trajectories_file.txt route/encoded_trajectories_file.txt");
+	printf("\nUSAGE:\n ./codeToInt path/stop_names_and_codes_file.txt path/trajectories_file.txt path/encoded_trajectories_file.txt");
 
 }
 
@@ -270,7 +268,7 @@ int main(int argc, char* argv[]){
 		stops_names_and_codes.close();
 	}
 	else{
-		print_usage();
+		printUsage();
 		exit(EXIT_FAILURE);
 	}
 
@@ -290,7 +288,7 @@ int main(int argc, char* argv[]){
 	}
 	else{
 		printf("ERROR: input trajectories file not found. Stopping the process.\n");
-		print_usage();
+		printUsage();
 		exit(EXIT_FAILURE);
 	}
 

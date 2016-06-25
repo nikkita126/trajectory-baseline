@@ -1,5 +1,5 @@
 // Extracted from libcds https://github.com/fclaude/libcds/blob/master/src/utils/cppUtils.h
-//
+// Modified by Cathy Espinoza
 //
 
 #ifndef _CPPUTILS
@@ -8,6 +8,8 @@
 #include <assert.h>
 #include <fstream>
 #include <vector>
+#include <string>
+#include <cstddef>
 
 using namespace std;
 
@@ -55,5 +57,8 @@ namespace cds_utils
 
 	void tokenize(string str, vector<string> &tokens, char delim);
 
+
+
 };
+
 #endif

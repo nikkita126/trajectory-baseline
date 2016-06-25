@@ -1,39 +1,87 @@
-#
-# Sourcetree layout and Makefile structure taken from
-# http://hiltmon.com/blog/2013/07/03/a-simple-c-plus-plus-project-structure/
-#
- 
-CC := g++ # This is the main compiler
-# CC := clang --analyze # and comment out the linker last line for sanity
+
+#---------------------------
+# Compiler options
+
+CC	:= g++
+CFLAGS  := -std=c++11
+
+
+#---------------------------
+# Environment configuration
+
 SRCDIR := src
 BUILDDIR := build
-TARGET := bin/runner
- 
+BINDIR := bin
+LIBDIR := lib
+STRUCTUREDIR := structures
+TINDEX_SRCDIR := $(SRCDIR)/tindex
+TINDEX_BUILDDIR := $(BUILDDIR)/tindex
+#SRCDIRUTILS = utils
+#SRCDIRLIBCDS = ./src/libcds
+
 SRCEXT := cpp
-SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
-OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -g # -Wall
-LIB := -pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
+
+#SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+#OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
+TINDEX_SOURCES := $(shell find $(TINDEX_SRCDIR) -type f -name *.$(SRCEXT))
+TINDEX_OBJECTS := $(patsubst $(TINDEX_SRCDIR)/%,$(TINDEX_BUILDDIR)/%,$(TINDEX_SOURCES:.$(SRCEXT)=.o))
+TINDEX_LIB := $(LIBDIR)/tindex.a
+
+EXECUTABLES := codeToInt createIndex useIndex
+
+#CFLAGS := -g # -Wall
+#LIB := -pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
+LIB := -L $(LIBDIR)
 INC := -I include
 
-$(TARGET): $(OBJECTS)
-  @echo " Linking..."
-  @echo " $(CC) $^ -o $(TARGET) $(LIB)"; $(CC) $^ -o $(TARGET) $(LIB)
+#---------------------------
 
-$(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
-  @mkdir -p $(BUILDDIR)
-  @echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
+all: clean allTIndex $(EXECUTABLES)
+
+#---------------------------
+# TIndex library creation
+allTIndex: tindex
+	@echo " Creating static library $(TINDEX_LIB)"
+	@echo " ar rcvs $(TINDEX_LIB)  $(TINDEX_OBJECTS)" ; ar rcvs $(TINDEX_LIB)  $(TINDEX_OBJECTS)
+
+# dependencies
+
+tlistreader: $(TINDEX_BUILDDIR)/tlistreader.o
+tlist: tlistreader $(TINDEX_BUILDDIR)/tlist.o
+tindex: tlist $(TINDEX_BUILDDIR)/tindex.o
+
+$(TINDEX_BUILDDIR)/%.o: $(TINDEX_SRCDIR)/%.$(SRCEXT)
+	@echo "COMPILING 2: $@ $<"
+	@mkdir -p $(TINDEX_BUILDDIR)
+	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
+
+#-----------------------------
+# Executables
+
+codeToInt: $(BINDIR)/codeToInt
+createIndex: allTIndex $(BINDIR)/createIndex
+useIndex: allTIndex $(BINDIR)/useIndex
+
+$(BINDIR)/%: $(SRCDIR)/%.$(SRCEXT)
+	@echo "COMPILING 3: $@ $<"
+	@mkdir -p $(BINDIR)
+	@echo " $(CC) $(CFLAGS) $(INC) $(LIB) -o $@ $<"; $(CC) $(CFLAGS) $(INC) $(LIB) -o $@ $< $(TINDEX_LIB)
+
+#-----------------------------
 
 clean:
-  @echo " Cleaning..."; 
-  @echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
+	@echo " Cleaning..."; 
+	@echo " $(RM) -r $(BUILDDIR) $(BINDIR)"; $(RM) -r $(BUILDDIR) $(BINDIR)
+	@echo " DONE"
 
-# Tests
-tester:
-  $(CC) $(CFLAGS) test/tester.cpp $(INC) $(LIB) -o bin/tester
+cleanIndex:
+	@echo " Cleaning indexes..."; 
+	@echo " $(RM) -r $(STRUCTUREDIR)"; $(RM) -r $(STRUCTUREDIR)
+	@echo " DONE"
 
-# Spikes
-ticket:
-  $(CC) $(CFLAGS) spikes/ticket.cpp $(INC) $(LIB) -o bin/ticket
+cleanAll:
+	@echo " Cleaning binaries, objects and indexes..."; 
+	@echo " $(RM) -r $(BUILDDIR) $(BINDIR) $(STRUCTUREDIR)"; $(RM) -r $(BUILDDIR) $(BINDIR) $(STRUCTUREDIR)
+	@echo " DONE"
 
 .PHONY: clean

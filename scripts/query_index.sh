@@ -15,15 +15,13 @@ SORTED_DATASET=""$PROJECT_ROOT"/datasets/sorted_transantiago_encoded_trips.txt"
 #SORTED_DATASET=""$PROJECT_ROOT"/datasets/s_e_test_sample.txt"
 #echo "Sorted dataset: $SORTED_DATASET"
 #echo "Structure dir: $STRUCTURE_DIR"
-#-----------------------------
 
-
-# create folder where index and other structures will be stored
-mkdir -p "$STRUCTURE_DIR"
-
+QUERY_FILE=""$PROJECT_ROOT"/queries/input_puente_alto.txt"
+#QUERY_FILE=""$PROJECT_ROOT"/queries/sample_query.txt"
 #-----------------------------
 # execute program
-# createIndex usage
-# ./createIndex path/sorted_dataset.txt path/index/folder
+# queryIndex usage:
+#./queryIndex dataset_name path/index/folder path/results/folder < path/query/file
 
-./"$PROJECT_ROOT"/bin/createIndex "$SORTED_DATASET" "$STRUCTURE_DIR"
+mkdir -p "$RESULTS_DIR"
+./"$PROJECT_ROOT"/bin/queryIndex "$SORTED_DATASET" "$STRUCTURE_DIR" "$RESULTS_DIR" < "$QUERY_FILE"

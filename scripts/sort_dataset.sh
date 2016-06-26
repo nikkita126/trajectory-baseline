@@ -6,6 +6,6 @@ set -o errexit
 
 echo "Sorting encoded trajectories..."
 
-sort -V ../datasets/transantiago_encoded_travels.txt > ../datasets/sorted_transantiago_travels.txt
+sort -V ../datasets/transantiago_encoded_trips.txt > ../datasets/sorted_transantiago_travels.txt
 
 echo " DONE"

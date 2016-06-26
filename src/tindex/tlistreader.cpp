@@ -1,10 +1,21 @@
 #include "tlistreader.h"
 
+TListReader::TListReader(){
+	trips=0;
+	stops=0;
+	maxtime=0;
+}
+
+TListReader::TListReader(uint t, uint s, uint m){
+	trips = t;
+	stops = s;
+	m = t;
+}
+
 
 void TListReader::addPoint(uint id, uint stop, uint time){
-	/* adds the point (stop,time) to the list identified by 'id'*/
+	// adds the point (stop,time) to the list identified by 'id'
 	tlist[id].push_back(make_pair(stop,time));
-
 }
 
 void TListReader::setTrips(uint tr){
@@ -19,19 +30,20 @@ void TListReader::setMaxtime(uint mt){
 	maxtime=mt;
 }
 
+// FOR DEBUGGING and using with small dataset sample
 void TListReader::print(){
 
-   /* RECORRER E IMPRIMIR TRAYECTORIAS */
+   // print all trajectories
 
-	cout<<"Lista de trayectorias generadas"<<endl;
+	printf("List of trajectories: \n");
 
 	for(auto i=0;i<trips;i++){
-	    auto tam_trayectoria = tlist[i].size();
+	    auto traj_size = tlist[i].size();
 
-	    for(auto j=0;j<tam_trayectoria;j++){
-	        if(j) cout<<" ";
-	        cout<<"("<<tlist[i][j].first<<","<<tlist[i][j].second<<")";
+	    for(auto j=0;j<traj_size;j++){
+	        if(j) printf(" ");
+	        printf("(%u,%u)",tlist[i][j].first,tlist[i][j].second);
 	    }
-	    cout<<endl;
+	    printf("\n");
 	}
 }

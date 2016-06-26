@@ -22,7 +22,7 @@ using namespace std;
 
 void printUsage(){
 
-	printf("\nUSAGE:\n ./codeToInt path/stop_names_and_codes_file.txt path/trajectories_file.txt path/encoded_trajectories_file.txt");
+	printf("\nUSAGE:\n ./codeToInt path/stop_names_and_codes_file.txt path/trajectories_file.txt path/encoded_trajectories_file.txt\n");
 
 }
 
@@ -149,7 +149,7 @@ void readDictionary(map<string,int> &dictionary, ifstream &file){
 
 			dictionary.insert(make_pair(name,code));
     	}
-    	printf(" DONE\n");
+    	printf("\tDONE\n");
     }
     else
     	exit(EXIT_FAILURE);
@@ -245,7 +245,7 @@ void encodeTrajectories(ifstream &trajectories_file, map<string,int> &dictionary
 
 	} // end of while that iterates over the file
 
-	printf(" DONE.\n %d trajectories encoded.",cont_traj);
+	printf("\tDONE.\n %d trajectories encoded.",cont_traj);
 
 }
 
@@ -264,6 +264,12 @@ int main(int argc, char* argv[]){
 	ifstream stops_names_and_codes;
 	if (argc == 4){
 		stops_names_and_codes.open(argv[1]);
+
+		if(!stops_names_and_codes){
+	        printf("\nERROR: %s file doesn't exist. Exiting now.\n", argv[1]);
+	        exit(EXIT_FAILURE);
+    	}
+
 		readDictionary(dictionary,stops_names_and_codes);
 		stops_names_and_codes.close();
 	}
@@ -275,7 +281,7 @@ int main(int argc, char* argv[]){
 
 
 /*-----------------------------------------------------*/
-/*	Encode travel data to ints */
+/*	Encode trajectory data to ints */
 
 	ifstream trajectories_file(argv[2]);
 	ofstream encoded_trajectories_file(argv[3]);

@@ -1,0 +1,43 @@
+Repository for TList, a data structure to store a list of trajectories (with time), and TIndex, an index to query TList
+
+A trajectory is a sequence of points visited by a single person, of the following form:
+
+S_1 T_1 ... S_n T_n, where S is a stop, T is the time associated with the stop and 2 <= n <= 8 (n being an even number)
+
+All stops and times in a trajectory need to be encoded as integers for the structures to be able to read and store them
+
+
+** Source tree organisation and folder description
+
+	The most interesting ones:
+
+	* /scripts/: Scripts that manage the index creation and querying process. They don't expect arguments.
+
+	* /bin/: Executables. It contains:
+		- codeToInt: Transforms a trajectory file containing stop names and timestamps into its encoded version (with ints)
+		- createIndex: Creates a TList and TIndex from a sorted, encoded trajectory file and saves the structures into files
+		- queryIndex: Loads TList and TIndex from files and allows querying them (to obtain accesibility measures)
+
+	* /src/: All source files (.cpp) are here.
+
+	The rest:
+
+	* /build/: Object files (.o) product of compilation are stored here
+
+	* /datasets/: Folder to put datasets to be processed in.
+
+	* /include/: Header files (.h).
+
+	* /lib/: The place to store libraries.
+
+	* /queries/: Query files go here.
+		A query file contains one or more lines, where each line is a single query.
+		A query is composed of 4 integers: s,t,i,o with spaces between them, where
+			- "s" is a stop id
+			- "t" is the initial time (a discrete time point)
+			- "i" is the amount of discrete time points that compose the query buffer (each time represents 5 minutes; then, i=12 means a query buffer of 1 hour)
+			- "o" should be 1 for every query over real trajectories only. It is a flag to indicate that we're only interested in trajectories 
+				that *start* in (s,t) -as opposed to the ones that *include* (s,t)-
+		An independent resulting file is saved for every individual query in the /query_data/ folder.
+
+	* /structures/: TList and TIndex binary files are stored here

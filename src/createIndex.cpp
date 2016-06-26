@@ -11,7 +11,7 @@ using namespace std;
 
 void printUsage(){
 
-	printf("\nUSAGE:\n ./createIndex path/sorted_dataset.txt path/index/folder");
+	printf("\nUSAGE:\n ./createIndex path/sorted_dataset.txt path/index/folder\n");
 
 }
 
@@ -50,7 +50,7 @@ TListReader* readData(ifstream &infile){
 		    	if(time_end_pos==string::npos)
 					break;
 
-    		} /* end of iteration over the same travel */
+    		} /* end of iteration over the same trip */
             //cout<<"tam lista: "<<lista_trayectorias.size()<<endl;
 			cont_traj++;
 
@@ -94,26 +94,33 @@ int main(int argc, char *argv[]){
 
 	//--------------------
 	// Parse input data and load it into ordered, auxiliar structure
-	printf("\nReading data from dataset... ");
+	printf("\nReading data from dataset... \n");
 	infile.open(dataset);
+
+	if(!infile){
+        printf("\nERROR: %s file doesn't exist. Exiting now.\n", dataset.c_str());
+        exit(EXIT_FAILURE);
+    }
+
+
 	tlr=readData(infile);
     infile.close();
-    printf(" DONE\n");
+    printf("\tDONE\n");
 
     //--------------------
     // Create list structure of trajectories
-    printf("\nCreating trajectory list...");
+    printf("\nCreating trajectory list...\n");
     tl.create(*tlr);
-	printf(" DONE\n");
+	printf("\tDONE\n");
 	//--------------------
 	// Create index
-	printf("\nCreating trayectory index...");
+	printf("\nCreating trayectory index...\n");
 	ti.create(tl);
-	printf(" DONE\n");
+	printf("\tDONE\n");
 	//--------------------
 	// Save list and index to disk
 
-	printf("\nSaving data structures to disk...");
+	printf("\nSaving data structures to disk...\n");
 	list_out_filename=index_folder+"/"+dataset_filename+".tlist";
 	outfile.open(list_out_filename,ios::binary);
 	tl.save(outfile);
@@ -123,7 +130,7 @@ int main(int argc, char *argv[]){
 	outfile.open(index_out_filename,ios::binary);
 	ti.save(outfile);
 	outfile.close();
-	printf(" DONE\n");
+	printf("\tDONE\n");
 
 
 

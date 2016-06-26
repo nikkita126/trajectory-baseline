@@ -2,17 +2,15 @@
 
 //using namespace btree;
 
-//-------------------------
-// Query
+//-----------------------
+// QueryResult
 
-Query::Query(uint n, uint t, uint t_i, bool o_o){
-	st_node=n;
-	st_time=t;
-	time_interval=t_i;
-	origin_only=o_o;
+QueryResult::QueryResult(){
+	time_sum=0;
+	trajectory_count=0;
+	min_time=UINT_MAX; //from <climits>
+	max_time=0;
 }
-
-
 
 //--------------------------
 
@@ -149,10 +147,24 @@ TIndex* TIndex::load(ifstream &infile, TList *loaded_tlist){
 	return ti;
 }
 
+uint TIndex::totalStops(){
+
+	uint total = tlist->stops;
+	return total;
+}
+
+uint TIndex::totalTrajectories(){
+
+	uint total = tlist->trips;
+	return total;
+}
+
 
 size_t TIndex::getStartingIdIndex(uint s, size_t time_index){
 
 	size_t s_index = tindex[s].prev_n_trajectories[time_index];
+
+	//printf("DEBUGGING: starting index: %u\n",(uint)s_index);
 
 	return s_index;
 
@@ -166,9 +178,20 @@ size_t TIndex::getEndingIdIndex(uint s, size_t time_index){
 		e_index=tindex[s].n_ids-1;
 	else
 		e_index=tindex[s].prev_n_trajectories[time_index+1];
+	//printf("DEBUGGING: ending index: %u\n",(uint)e_index);
 
+	return e_index;
 
 }
+
+/*void TIndex::print(){
+
+	for (int i = 0; i < i; ++i)
+	{
+	
+	}
+
+}*/
 
 void TIndex::printIdList(uint s, uint t){
 	// s: stop, t: time
@@ -193,7 +216,7 @@ void TIndex::printIdList(uint s, uint t){
 	bool first=true;
 
 	for(size_t i=starting_id_index;i<ending_id_index;i++){
-
+		
 		if(!first) printf(" ");
 		else first=false;
 
@@ -203,7 +226,41 @@ void TIndex::printIdList(uint s, uint t){
 	printf("\n");
 }
 
-size_t TIndex::getTimeIndex(uint s, uint t){
+void TIndex::printIdList(uint s){
+
+	size_t list_size=tindex[s].n_ids;
+
+	for (size_t i = 0; i < list_size; i++){
+		
+		printf("%u ",tindex[s].ids_list[i]);
+	}
+	printf("\n");
+}
+
+
+void TIndex::printTimeList(uint s){
+
+	size_t list_size=tindex[s].n_times;
+
+	for (size_t i = 0; i < list_size; i++){
+		
+		printf("%u ",tindex[s].times_list[i]);
+	}
+	printf("\n");
+}
+
+void TIndex::printPrevTrajList(uint s){
+
+	size_t list_size=tindex[s].n_times;
+
+	for (size_t i = 0; i < list_size; i++){
+		
+		printf("%u ",tindex[s].prev_n_trajectories[i]);
+	}
+	printf("\n");
+}
+
+int TIndex::getTimeIndex(uint s, uint t){
 	// s: stop, t: time
 
     size_t l=0, r=(size_t)tindex[s].n_times-1, m;
@@ -213,7 +270,7 @@ size_t TIndex::getTimeIndex(uint s, uint t){
         m=l+(r-l)/2;
 
         if(tindex[s].times_list[m]==t)
-        	break;
+        	return m;
 
         else if(tindex[s].times_list[m] < t) //time is smaller than the given one
             l=m+1;
@@ -222,92 +279,111 @@ size_t TIndex::getTimeIndex(uint s, uint t){
 
     }
 
-    if(tindex[s].times_list[m]!=t)
+    if(tindex[s].times_list[l]!=t)
     	return -1;
 
-    return m;
+    return (int)l;
 }
 
-int TIndex::getStartingId(uint n_in, uint t_in, bool origin_only){
-    /* argumentos: 
-        * nodo inicial de la consulta
-        * tiempo inicial de la consulta
-        * flag para determinar si solo considerar pares (n,t) que inicien una trayectoria
-        * lista de trayectorias
-        * metodo de acceso a la lista
-    */
-
-    TList *tl = tlist;
-    uint *list_of_times = tindex[n_in].times_list;
-    uint times_list_size = tindex[n_in].n_times;
+int TIndex::startsInQuery(uint s_in, uint t_in, uint interval, btree_map<uint, QueryResult > &results_table){
+	// s_in: starting stop (node), t_in: starting time, interval: accessibility query buffer, results_table: structure to store query results
 
 
     // starting point
-    auto l_b = lower_bound(list_of_times,list_of_times+times_list_size,t_in);
-   
-    // if there is no lower bound of t_in on the list, throw error message
-    if(l_b=list_of_times+times_list_size){
-        printf("ERROR, starting time is bigger than any other time in the list\n");
+    int time_index = getTimeIndex(s_in,t_in);
+
+    if(time_index==-1){
+		printf("ERROR: (%u,%u) not found in dataset\n",s_in,t_in);
         return -1;
+
     }
 
-     uint actual_starting_time=*l_b;
+    //--------------------------------------
+    // find the id of the smallest trajectory that starts in (s_in,t_in)
 
+    uint starting_traj_id;
+   
+    size_t left_index=getStartingIdIndex(s_in,(size_t)time_index);
+    size_t right_index=getEndingIdIndex(s_in,(size_t)time_index);
 
-    //uint asdf=*l_b->second;
+    uint l=left_index, r=right_index, m, traj_id;
+    uint traj_first_stop, traj_first_time;
+    pair<uint,uint> tmp_pair;
 
-    //cout<<"lb: "<<l_b->first<<endl;
+    while(l<r){ // bin search to find starting trajectory id
+        
+        m=l+(r-l)/2;
+        traj_id = tindex[s_in].ids_list[m];
+        traj_first_stop=tlist->firstStop(traj_id);
+        traj_first_time=tlist->firstTime(traj_id);
 
-    //if(l_b->first >= t_fin){
-    if(actual_starting_time > (t_in + DELTA_T)){
-            //tiempo fuera de rango
-            printf("There are no travels using (%u,%u)\n",n_in,t_in);
-            return -1;
-    }
+        //tmp_pair=make_pair(s_in,actual_starting_time);
 
-    
+        if(traj_first_stop < s_in || (!(traj_first_stop>s_in) && traj_first_time<t_in) ){ // "smaller" trajectories than the ones of interest
+            l=m+1;
 
-    uint selected_index=l_b-list_of_times;
-    printf("selected index: %d\n",selected_index);
-
-    /*
-    vector<uint> ids_vector;
-    to_vector(l_b->second, ids_vector);
-
-    if(origin_only){
-
-        uint tam_lista_ids = ids_vector.size();
-
-        uint l=0, r=tam_lista_ids-1, m, tray_id;
-        uint first_node, first_time;
-        pair<uint,uint> tmp_pair;
-
-        while(l<r){
-            
-            m=l+(r-l)/2;
-            tray_id = ids_vector[m];
-            first_node=lista_trayectorias[tray_id][0].first;
-            first_time=lista_trayectorias[tray_id][0].second;
-            tmp_pair=make_pair(n_in,actual_starting_time);
-
-            if(lista_trayectorias[tray_id][0] < tmp_pair){ // trayectorias "menores" que la buscada 
-                l=m+1;
-
-            }
-            else
-                r=m;
+        }
+        else
+            r=m;
 
 //            cout<<"l: "<<l<<" m: "<<m<<" r: "<<r<<endl;
-        }
-        return ids_vector[l];
     }
-    else {
 
-        // para trayectorias potenciales
+   	starting_traj_id=tindex[s_in].ids_list[l]; 
 
-    }*/
+   	//printf("DEBUGGING: %\n");
 
-    return -1;
+    if(tlist->firstStop(starting_traj_id)!=s_in || tlist->firstTime(starting_traj_id)!=t_in){
+    	printf("There are no trips that start in (%u,%u)\n",s_in,t_in);
+    	return -1;
+    }
+    //---------------------------------------------
+
+    int destinations_cont=0;
+
+    uint i=starting_traj_id;
+    size_t id_list_size=tlist->size();
+
+    // we iterate over TList's list of trajectories, taking advantage of the fact that they are sorted
+    while(i<id_list_size && tlist->firstStop(i)==s_in && tlist->firstTime(i) == t_in){ 
+
+    	size_t traj_size=tlist->sizeOfTrajectory(i);
+
+        for(size_t j=0;j!=traj_size;j+=2){ 
+			
+            size_t destination=j+1; // we only consider the trajectory's segments' destinations
+            uint destination_time=tlist->timeAt(destination,i);
+
+            if(destination_time >= t_in+interval)
+                break;
+
+            // if the point is inside the query buffer, add to the results table
+            uint destination_stop = tlist->stopAt(destination,i);
+            auto it = results_table.find(destination_stop);
+
+            if (it == results_table.end()){
+
+            	QueryResult *qr = new QueryResult();
+                results_table.insert(make_pair(destination_stop,*qr));
+            }
+
+            uint travel_time=destination_time - t_in;
+            results_table[destination_stop].time_sum+=travel_time;
+            results_table[destination_stop].trajectory_count++;
+
+            if(travel_time < results_table[destination_stop].min_time)
+                results_table[destination_stop].min_time = travel_time;
+
+            if(travel_time > results_table[destination_stop].max_time)
+                results_table[destination_stop].max_time = travel_time;
+            
+            destinations_cont++;
+        }
+
+        i++;
+    }
+
+    return 0;
 
 }
 
@@ -318,7 +394,3 @@ void loadListAndIndex(TList *tlist, ifstream &list_file, TIndex *tindex, ifstrea
 	tindex = TIndex::load(index_file,tlist);
 
 }
-
-
-
-

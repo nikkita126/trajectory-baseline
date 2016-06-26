@@ -16,7 +16,6 @@
 
 using namespace btree;
 using namespace std;
-//using namespace cds_utils;
 
 class TListReader {
 public:
@@ -26,17 +25,9 @@ public:
 
 	btree_map<uint,vector<pair<uint,uint> > > tlist; /* list of trajectories */
 
-	TListReader(){
-		trips=0;
-		stops=0;
-		maxtime=0;
-	}
+	TListReader();
 
-	TListReader(uint t, uint s, uint m){
-		trips = t;
-		stops = s;
-		m = t;
-	}
+	TListReader(uint t, uint s, uint m);
 
 	void addPoint(uint id, uint stop, uint time);
 

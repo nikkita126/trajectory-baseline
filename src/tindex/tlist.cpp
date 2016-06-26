@@ -74,27 +74,74 @@ TList* TList::load(ifstream &infile){
 }
 
 void TList::print(){
-	cout<<"Lista de trayectorias generadas"<<endl;
+	printf("Printing list of trajectories...\n");
 
 	for(auto i=0;i<trips;i++){
-	    for(auto j=0;j<tlist[i].n_stops;j++){
-	        if(j) cout<<" ";
-	        cout<<"("<<tlist[i].stops_list[j]<<","<<tlist[i].times_list[j]<<")";
-	    }
-	    cout<<endl;
+	    printTrajectory(i);
 	}
 
-	cout<<"FIN!"<<endl;
+	printf("DONE\n");
 }
 
-void TList::print(uint id){
-	cout<<"Trayectoria nro: "<<id<<endl;
+void TList::printTrajectory(uint id){
+	printf("Trajectory num: %u\n",id);
 
     for(auto j=0;j<tlist[id].n_stops;j++){
-        if(j) cout<<" ";
-        cout<<"("<<tlist[id].stops_list[j]<<","<<tlist[id].times_list[j]<<")";
+        if(j) printf(" ");
+        printf("(%u,%u)",tlist[id].stops_list[j],tlist[id].times_list[j]);
     }
-    cout<<endl;
+    printf("\n");
+}
+
+size_t TList::size(){
+
+	return (size_t)trips;
+}
+
+size_t TList::sizeOfTrajectory(uint traj_id){
+
+	if(traj_id>trips)	// sanity check
+		return 0;
+
+	size_t traj_size=(size_t)tlist[traj_id].n_stops;
+
+	return traj_size;
+}
+
+uint TList::firstStop(uint traj_id){
+
+	if(traj_id>=trips)	// sanity check
+		return 0;
+
+	uint f_s=tlist[traj_id].stops_list[0];
+
+	return f_s;
+}
+
+uint TList::firstTime(uint traj_id){
+
+	if(traj_id>=trips)	// sanity check
+		return 0;
+
+	uint f_t=tlist[traj_id].times_list[0];
+
+	return f_t;
+}
+
+uint TList::stopAt(size_t pos, uint traj_id){ 
+
+	if(traj_id>=trips || pos>=tlist[traj_id].n_stops)
+		return 0;
+
+	return tlist[traj_id].stops_list[pos];
+}
+
+uint TList::timeAt(size_t pos, uint traj_id){ 
+
+	if(traj_id>=trips || pos>=tlist[traj_id].n_stops)
+		return 0;
+
+	return tlist[traj_id].times_list[pos];
 }
 
 //----------------------------------------------------
@@ -103,7 +150,7 @@ void TList::print(uint id){
 string getFilename(string path){
 
 	size_t pos=path.find_last_of("/\\"); // FIXME: makes assumption that theres a slash in path (might not always be like that)
-	size_t extension_pos=path.find_first_of(".");
+	size_t extension_pos=path.find_first_of(".",pos);
 	string filename;
 
 	if(extension_pos!=string::npos){
@@ -113,6 +160,7 @@ string getFilename(string path){
 	else
 		filename=path.substr(pos+1);
 
+	// printf("DEBUGGING: pos: %u, ext: %u, filename = %s\n", (uint)pos, (uint)extension_pos,filename.c_str());
 	
 	return filename;
 }

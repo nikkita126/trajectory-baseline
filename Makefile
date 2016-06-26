@@ -27,7 +27,7 @@ TINDEX_SOURCES := $(shell find $(TINDEX_SRCDIR) -type f -name *.$(SRCEXT))
 TINDEX_OBJECTS := $(patsubst $(TINDEX_SRCDIR)/%,$(TINDEX_BUILDDIR)/%,$(TINDEX_SOURCES:.$(SRCEXT)=.o))
 TINDEX_LIB := $(LIBDIR)/tindex.a
 
-EXECUTABLES := codeToInt createIndex useIndex
+EXECUTABLES := codeToInt createIndex queryIndex
 
 #CFLAGS := -g # -Wall
 #LIB := -pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
@@ -41,8 +41,11 @@ all: clean allTIndex $(EXECUTABLES)
 #---------------------------
 # TIndex library creation
 allTIndex: tindex
-	@echo " Creating static library $(TINDEX_LIB)"
-	@echo " ar rcvs $(TINDEX_LIB)  $(TINDEX_OBJECTS)" ; ar rcvs $(TINDEX_LIB)  $(TINDEX_OBJECTS)
+	@mkdir -p $(LIBDIR)
+	@echo "Creating static library $(TINDEX_LIB)"
+	@echo "\t\t ar rcvs $(TINDEX_LIB)  $(TINDEX_OBJECTS)"; ar rcvs $(TINDEX_LIB)  $(TINDEX_OBJECTS)
+	@echo " DONE"
+	@echo ""
 
 # dependencies
 
@@ -51,37 +54,46 @@ tlist: tlistreader $(TINDEX_BUILDDIR)/tlist.o
 tindex: tlist $(TINDEX_BUILDDIR)/tindex.o
 
 $(TINDEX_BUILDDIR)/%.o: $(TINDEX_SRCDIR)/%.$(SRCEXT)
-	@echo "COMPILING 2: $@ $<"
+	@echo "COMPILING: $@ $<"
 	@mkdir -p $(TINDEX_BUILDDIR)
-	@echo " $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
+	@echo "\t\t $(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
+	@echo " DONE"
+	@echo ""
 
 #-----------------------------
 # Executables
 
 codeToInt: $(BINDIR)/codeToInt
 createIndex: allTIndex $(BINDIR)/createIndex
-useIndex: allTIndex $(BINDIR)/useIndex
+queryIndex: allTIndex $(BINDIR)/queryIndex
 
 $(BINDIR)/%: $(SRCDIR)/%.$(SRCEXT)
-	@echo "COMPILING 3: $@ $<"
+	@echo "COMPILING: $@ $<"
 	@mkdir -p $(BINDIR)
-	@echo " $(CC) $(CFLAGS) $(INC) $(LIB) -o $@ $<"; $(CC) $(CFLAGS) $(INC) $(LIB) -o $@ $< $(TINDEX_LIB)
+	@echo "\t\t $(CC) $(CFLAGS) $(INC) $(LIB) -o $@ $< $(TINDEX_LIB)"; $(CC) $(CFLAGS) $(INC) $(LIB) -o $@ $< $(TINDEX_LIB)
+	@echo " DONE"
+	@echo ""
+
 
 #-----------------------------
 
 clean:
+
 	@echo " Cleaning..."; 
-	@echo " $(RM) -r $(BUILDDIR) $(BINDIR)"; $(RM) -r $(BUILDDIR) $(BINDIR)
+	@echo "\t\t $(RM) -r $(BUILDDIR) $(BINDIR)"; $(RM) -r $(BUILDDIR) $(BINDIR)
 	@echo " DONE"
+	@echo ""
 
 cleanIndex:
 	@echo " Cleaning indexes..."; 
-	@echo " $(RM) -r $(STRUCTUREDIR)"; $(RM) -r $(STRUCTUREDIR)
+	@echo "\t\t $(RM) -r $(STRUCTUREDIR)"; $(RM) -r $(STRUCTUREDIR)
 	@echo " DONE"
+	@echo ""
 
 cleanAll:
 	@echo " Cleaning binaries, objects and indexes..."; 
-	@echo " $(RM) -r $(BUILDDIR) $(BINDIR) $(STRUCTUREDIR)"; $(RM) -r $(BUILDDIR) $(BINDIR) $(STRUCTUREDIR)
+	@echo "\t\t $(RM) -r $(BUILDDIR) $(BINDIR) $(STRUCTUREDIR)"; $(RM) -r $(BUILDDIR) $(BINDIR) $(STRUCTUREDIR)
 	@echo " DONE"
+	@echo ""
 
 .PHONY: clean

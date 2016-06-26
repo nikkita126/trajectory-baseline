@@ -15,31 +15,19 @@
 #include <fstream>
 #include <map>
 #include <sstream>
-
-#define DELTA_T 0
+#include <climits>
 
 using namespace std;
 
-class Query {
-public:
-	uint st_node; //starting node
-	uint st_time; //initial time
-	uint time_interval;
-	bool origin_only; // true for real trajectories, false for potential trajectories
-
-	Query(uint n,uint t, uint t_i, bool o_o);
-};
-
-class QueryResult{
+class QueryResult{ //FIX-ME: should be in a sepparate header file (interface for upcoming structures) 
 public:
     uint time_sum;
     uint trajectory_count;
     uint min_time;
     uint max_time;
+
+    QueryResult();
 };
-
-
-
 
 class StopEventList {
 public:
@@ -53,32 +41,36 @@ public:
 
 };
 
-
-
 class TIndex{
 public:
 	TList *tlist;
 
 	StopEventList *tindex; //size: tlist->stops(+1?)
 
-	void create(TList &tl);
+	void create(TList &tl); // create a new index to access an existing TList
 
-	void save(ofstream &outfile);
+	void save(ofstream &outfile); // save structure to file
 
-	void saveDataOnly(ofstream &outfile);
+	void saveDataOnly(ofstream &outfile); // doesn't save the variables to reconstruct the index
 
-	static TIndex* load(ifstream &infile, TList *tlist);
+	static TIndex* load(ifstream &infile, TList *tlist); // load structure from file
 
-	size_t getStartingIdIndex(uint s, size_t time_index);
+	int getTimeIndex(uint s, uint t); // get index of time t in the times_list associated to stop s
 
-	size_t getEndingIdIndex(uint s, size_t time_index);
+	size_t getStartingIdIndex(uint s, size_t time_index); // retrieve the starting index of the ids_list associated to time at position time_index in the times_list
+	size_t getEndingIdIndex(uint s, size_t time_index); // idem, except that it's the ending index
 
-	void printIdList(uint s, uint t);
+	void printIdList(uint s, uint t); // print list of trajectory ids than include (s,t)
+	void printIdList(uint s);
+	void printTimeList(uint s);
+	void printPrevTrajList(uint s);
 
-	int getStartingId(uint n_in, uint t_in, bool origin_only);
+	uint totalStops(); // return total stops included in tlist
+	uint totalTrajectories(); // return number of trajectories in tlist 
+	// query functions
+	int startsInQuery(uint s_in, uint t_in, uint interval, btree_map<uint, QueryResult > &results_table); // accessibility query for real trajectories
 
-private:
-	size_t getTimeIndex(uint s, uint t);
+	int includesQuery(uint s, uint t, uint interval, btree_map<uint, QueryResult > &results_table); // accessibility query for potential trajectories - NOT IMPLEMENTED YET
 
 };
 

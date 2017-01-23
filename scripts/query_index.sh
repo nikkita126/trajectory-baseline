@@ -16,7 +16,7 @@ SORTED_DATASET=""$PROJECT_ROOT"/datasets/sorted_transantiago_encoded_trips.txt"
 #echo "Sorted dataset: $SORTED_DATASET"
 #echo "Structure dir: $STRUCTURE_DIR"
 
-QUERY_FILE=""$PROJECT_ROOT"/queries/input_puente_alto.txt"
+QUERY_FILE=""$PROJECT_ROOT"/queries/input_uchile.txt"
 #QUERY_FILE=""$PROJECT_ROOT"/queries/sample_query.txt"
 #-----------------------------
 # execute program

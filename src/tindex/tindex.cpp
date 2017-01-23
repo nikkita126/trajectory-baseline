@@ -351,7 +351,7 @@ int TIndex::startsInQuery(uint s_in, uint t_in, uint interval, btree_map<uint, Q
 
         for(size_t j=0;j!=traj_size;j+=2){ 
 			
-            size_t destination=j+1; // we only consider the trajectory's segments' destinations
+            size_t destination=j+1; // we only consider the trajectory's segments' destinations FIXME
             uint destination_time=tlist->timeAt(destination,i);
 
             if(destination_time >= t_in+interval)

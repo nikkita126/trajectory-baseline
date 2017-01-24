@@ -35,8 +35,8 @@ public:
 	Distance_Graph(string encoded_distances_filename, uint n_stops, string separator);
 	~Distance_Graph();
 
-
-	void print_distance(uint i,uint j);
+	int getDistance(uint i,uint j);
+	void printDistance(uint i,uint j);
 	
 };
 

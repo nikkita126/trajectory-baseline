@@ -25,17 +25,19 @@ int main(int argc, char **argv){
 	}
 	*/
 
+	/*----- test queries ----*/
 
-	dg->print_distance(1,2);
-	dg->print_distance(100,500);
-	dg->print_distance(10456,4567);
-	dg->print_distance(2,7);
-	dg->print_distance(11194,194);
-	dg->print_distance(11194,195);
-	dg->print_distance(11196,1);
-	dg->print_distance(11208,2766);
+	dg->printDistance(1,2);
+	dg->printDistance(100,500);
+	dg->printDistance(10456,4567);
+	dg->printDistance(2,7);
+	dg->printDistance(11194,194);
+	dg->printDistance(11194,195);
+	dg->printDistance(11196,1);
+	dg->printDistance(11208,2766);
+	dg->printDistance(11196,1385);
 
-
+	/*------------------------*/
 
 
 	return 0;

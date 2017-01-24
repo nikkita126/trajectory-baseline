@@ -28,7 +28,7 @@ Distance_Graph::Distance_Graph(string encoded_dist_filename, uint n_stops, strin
 	mindist=INT_MAX;
 	mindist_node_a=-1;
 	mindist_node_b=-1;
-	zerocount=-1;
+	zerocount=0;
 
 	//---------------------------------//
 	
@@ -67,6 +67,8 @@ Distance_Graph::Distance_Graph(string encoded_dist_filename, uint n_stops, strin
 			graph[stop_i].push_back(ui(stop_j,dist));
 			graph[stop_j].push_back(ui(stop_i,dist));
 
+			sort(graph[stop_i].begin(),graph[stop_i].end(),cmp);
+			sort(graph[stop_j].begin(),graph[stop_j].end(),cmp);
 			//printf("Updated: distance from %u to %u = %u\n",stop_i,stop_j,dist);
 
 			if(dist<mindist){ // search for the smallest distance achievable
@@ -88,17 +90,30 @@ Distance_Graph::Distance_Graph(string encoded_dist_filename, uint n_stops, strin
 	encoded_distances.close();
 }
 
-void Distance_Graph::print_distance(uint i, uint j){
+int Distance_Graph::getDistance(uint i,uint j){
 
 	auto l_b=lower_bound(graph[i].begin(),graph[i].end(),ui(j,0),cmp);
 
 	if(l_b->first != j){
-		printf("l_b first: %u\n",l_b->first);
+		//printf("l_b first: %u\n",l_b->first);
+		
+		return -1;
+	}
+
+	return l_b->second;
+
+}
+
+void Distance_Graph::printDistance(uint i, uint j){
+
+	int d = getDistance(i,j);
+
+	if(d==-1) {
 		printf("pair (%u,%u) is not connected\n",i,j);
 		return;
 	}
 
-	printf("distance from node %u to node %u: %d\n",i,j,l_b->second);
+	printf("distance from node %u to node %u: %d\n",i,j,d);
 
 
 }

@@ -32,7 +32,7 @@ public:
 
 
 
-	Distance_Graph(ifstream encoded_distances, uint n_stops, string separator);
+	Distance_Graph(string encoded_distances_filename, uint n_stops, string separator);
 	~Distance_Graph();
 
 

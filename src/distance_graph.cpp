@@ -8,7 +8,17 @@ bool cmp(const ui &l,const ui &r)
 }
 
 
-Distance_Graph::Distance_Graph(ifstream encoded_distances, uint n_stops, string separator){
+Distance_Graph::Distance_Graph(string encoded_dist_filename, uint n_stops, string separator){
+
+	ifstream encoded_distances;
+	encoded_distances.open(encoded_dist_filename);
+
+	if(!encoded_distances){
+        printf("\nERROR: %s file doesn't exist. Exiting now.\n", encoded_dist_filename.c_str());
+        exit(EXIT_FAILURE);
+	}
+
+
 
 	//--------- Initialization --------//
 	graph.assign(n_stops,vui());
@@ -57,6 +67,8 @@ Distance_Graph::Distance_Graph(ifstream encoded_distances, uint n_stops, string 
 			graph[stop_i].push_back(ui(stop_j,dist));
 			graph[stop_j].push_back(ui(stop_i,dist));
 
+			//printf("Updated: distance from %u to %u = %u\n",stop_i,stop_j,dist);
+
 			if(dist<mindist){ // search for the smallest distance achievable
 				mindist = dist;
 				mindist_node_a=stop_i;
@@ -71,6 +83,9 @@ Distance_Graph::Distance_Graph(ifstream encoded_distances, uint n_stops, string 
 			if(stop_j>maxnode) maxnode=stop_j;
 		}
 	}
+
+
+	encoded_distances.close();
 }
 
 void Distance_Graph::print_distance(uint i, uint j){
@@ -78,13 +93,12 @@ void Distance_Graph::print_distance(uint i, uint j){
 	auto l_b=lower_bound(graph[i].begin(),graph[i].end(),ui(j,0),cmp);
 
 	if(l_b->first != j){
+		printf("l_b first: %u\n",l_b->first);
 		printf("pair (%u,%u) is not connected\n",i,j);
 		return;
 	}
 
-	ui n = graph[i][j];
-
-	printf("distance from node %u to node %u: %d\n",i,j,n.second);
+	printf("distance from node %u to node %u: %d\n",i,j,l_b->second);
 
 
 }

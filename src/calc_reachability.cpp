@@ -26,7 +26,7 @@ int main(int argc, char **argv){
 	*/
 
 	/*----- test queries ----*/
-
+	/*
 	dg->printDistance(1,2);
 	dg->printDistance(100,500);
 	dg->printDistance(10456,4567);
@@ -36,7 +36,7 @@ int main(int argc, char **argv){
 	dg->printDistance(11196,1);
 	dg->printDistance(11208,2766);
 	dg->printDistance(11196,1385);
-
+	*/
 	/*------------------------*/
 
 

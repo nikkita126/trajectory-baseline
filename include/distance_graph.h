@@ -37,6 +37,7 @@ public:
 
 	int getDistance(uint i,uint j);
 	void printDistance(uint i,uint j);
+	void printInfo();
 	
 };
 

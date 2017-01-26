@@ -16,12 +16,31 @@ SORTED_DATASET=""$PROJECT_ROOT"/datasets/sorted_transantiago_encoded_trips.txt"
 #echo "Sorted dataset: $SORTED_DATASET"
 #echo "Structure dir: $STRUCTURE_DIR"
 
-QUERY_FILE=""$PROJECT_ROOT"/queries/input_uchile.txt"
-#QUERY_FILE=""$PROJECT_ROOT"/queries/sample_query.txt"
-#-----------------------------
-# execute program
-# queryIndex usage:
-#./queryIndex dataset_name path/index/folder path/results/folder < path/query/file
+mkdir -p "$RESULTS_DIR"/time_q
 
-mkdir -p "$RESULTS_DIR"
-./"$PROJECT_ROOT"/bin/queryIndex "$SORTED_DATASET" "$STRUCTURE_DIR" "$RESULTS_DIR" < "$QUERY_FILE"
+#i=372
+#while [  $i -lt 2304 ]; do
+#	echo $i
+#   
+#
+#	QUERY_FILE=""$PROJECT_ROOT"/queries/s1-s11270_t"$i"+18.txt"
+##QUERY_FILE=""$PROJECT_ROOT"/queries/sample_query.txt"
+##-----------------------------
+## execute program
+## queryIndex usage:
+##./queryIndex dataset_name path/index/folder path/results/folder < path/query/file
+#
+#
+#	./"$PROJECT_ROOT"/bin/queryIndex "$SORTED_DATASET" "$STRUCTURE_DIR" "$RESULTS_DIR"/time_q < "$QUERY_FILE"
+#
+#	i=$((i+288))
+#done
+
+QUERY_FILE=""$PROJECT_ROOT"/queries/s1-s11270_t372+18.txt"
+./"$PROJECT_ROOT"/bin/queryIndex "$SORTED_DATASET" "$STRUCTURE_DIR" "$RESULTS_DIR"/time_q < "$QUERY_FILE"
+
+QUERY_FILE=""$PROJECT_ROOT"/queries/s1-s11270_t432+18.txt"
+./"$PROJECT_ROOT"/bin/queryIndex "$SORTED_DATASET" "$STRUCTURE_DIR" "$RESULTS_DIR"/time_q < "$QUERY_FILE"
+
+QUERY_FILE=""$PROJECT_ROOT"/queries/s1-s11270_t504+18.txt"
+./"$PROJECT_ROOT"/bin/queryIndex "$SORTED_DATASET" "$STRUCTURE_DIR" "$RESULTS_DIR"/time_q < "$QUERY_FILE"

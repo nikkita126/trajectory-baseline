@@ -293,7 +293,8 @@ int TIndex::startsInQuery(uint s_in, uint t_in, uint interval, btree_map<uint, Q
     int time_index = getTimeIndex(s_in,t_in);
 
     if(time_index==-1){
-		printf("ERROR: (%u,%u) not found in dataset\n",s_in,t_in);
+    	// UNCOMMENT IF DEBUGGING
+		//printf("ERROR: (%u,%u) not found in dataset\n",s_in,t_in);
         return -1;
 
     }
@@ -307,7 +308,7 @@ int TIndex::startsInQuery(uint s_in, uint t_in, uint interval, btree_map<uint, Q
     size_t right_index=getEndingIdIndex(s_in,(size_t)time_index);
 
     uint l=left_index, r=right_index, m, traj_id;
-    uint traj_first_stop, traj_first_time;
+    uint traj_first_stop, traj_first_time;starts
     pair<uint,uint> tmp_pair;
 
     while(l<r){ // bin search to find starting trajectory id
@@ -334,7 +335,8 @@ int TIndex::startsInQuery(uint s_in, uint t_in, uint interval, btree_map<uint, Q
    	//printf("DEBUGGING: %\n");
 
     if(tlist->firstStop(starting_traj_id)!=s_in || tlist->firstTime(starting_traj_id)!=t_in){
-    	printf("There are no trips that start in (%u,%u)\n",s_in,t_in);
+    	//UNCOMMENT IF DEBUGGING
+    	//printf("There are no trips that start in (%u,%u)\n",s_in,t_in);
     	return -1;
     }
     //---------------------------------------------

@@ -25,7 +25,8 @@ int processQuery(uint s_in, uint t_in, uint t_interval, bool origin_only, TIndex
         catch_error=ti.startsInQuery(s_in, t_in, t_interval, results_table);
 
         if(catch_error==-1){
-            printf("\nERROR: query %u,%u,%u, %s couldn't be executed\n",s_in,t_in,t_interval, origin_only ? "true": "false" );
+            /* UNCOMMENT IF DEBUGGING */
+            //printf("\nERROR: query %u,%u,%u, %s couldn't be executed\n",s_in,t_in,t_interval, origin_only ? "true": "false" );
             return -1;
         }      
 
@@ -161,14 +162,14 @@ printf("-------------\n");
 
         output_file=results_folder+"/"+dataset_filename+"-"+query_type+"-"+to_string(s_in)+"_"+to_string(t_in)+"-"+to_string(t_interval*5)+"min.txt";
         query_results_file.open(output_file);
-        bool first_line=true;
+        //bool first_line=true;
         if(query_results_file){ // save query results to file
             for(auto it=results_table.begin();it!=results_table.end();it++){
-                if(first_line) first_line=false;
-                else query_results_file<<"\n";
+                //if(first_line) first_line=false;
+                //else query_results_file<<"\n";
                 
                 /* origin,destination,[starting_query_time,ending_query_time),time_sum,trajectory_count,min_time,max_time */
-                query_results_file<<s_in<<" "<<it->first<<" "<<t_in<<" "<<t_in+t_interval<<" "<<(it->second.time_sum)*5<<" "<<it->second.trajectory_count<<" "<<(it->second.min_time)*5<<" "<<(it->second.max_time)*5;
+                query_results_file<<s_in<<" "<<it->first<<" "<<t_in<<" "<<t_in+t_interval<<" "<<(it->second.time_sum)*5<<" "<<it->second.trajectory_count<<" "<<(it->second.min_time)*5<<" "<<(it->second.max_time)*5<<"\n";
                 
             }
             query_results_file.close();

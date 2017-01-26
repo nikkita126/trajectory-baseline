@@ -117,3 +117,8 @@ void Distance_Graph::printDistance(uint i, uint j){
 
 
 }
+
+void Distance_Graph::printInfo(){
+
+	printf("TOTAL_NODES: %d\nMINDIST: %d nodes: %d %d\nMAXNODE: %d\nZEROCOUNT: %d\n",total_nodes,mindist,mindist_node_a,mindist_node_b,maxnode,zerocount);
+}

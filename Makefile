@@ -29,7 +29,7 @@ TINDEX_LIB := $(LIBDIR)/tindex.a
 
 UTILITIES_LIB_LIST	:= $(LIBDIR)/stop_encoding.a $(LIBDIR)/distance_graph.a
 
-EXECUTABLES := codeToInt createIndex queryIndex encode_distances calc_reachability
+EXECUTABLES := gen_query codeToInt createIndex queryIndex encode_distances calc_reachability
 LIBRARIES 	:= stop_encoding distance_graph
 #CFLAGS := -g # -Wall
 #LIB := -pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
@@ -86,6 +86,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 #-----------------------------
 # Executables
 
+gen_query: $(BINDIR)/gen_query
 codeToInt: stop_encoding $(BINDIR)/codeToInt
 createIndex: allTIndex $(BINDIR)/createIndex
 queryIndex: allTIndex $(BINDIR)/queryIndex

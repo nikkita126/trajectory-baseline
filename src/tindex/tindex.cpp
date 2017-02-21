@@ -308,7 +308,7 @@ int TIndex::startsInQuery(uint s_in, uint t_in, uint interval, btree_map<uint, Q
     size_t right_index=getEndingIdIndex(s_in,(size_t)time_index);
 
     uint l=left_index, r=right_index, m, traj_id;
-    uint traj_first_stop, traj_first_time;starts
+    uint traj_first_stop, traj_first_time;
     pair<uint,uint> tmp_pair;
 
     while(l<r){ // bin search to find starting trajectory id

@@ -10,6 +10,7 @@ int main(int argc, char **argv){
 
 	uint first_stop, last_stop, interval;
 	int first_q_time;
+	string results_folder = argv[5];
 
 
 	first_stop=atoi(argv[1]);
@@ -17,11 +18,12 @@ int main(int argc, char **argv){
 	first_q_time=atoi(argv[3]);
 	interval=atoi(argv[4]);
 
+
 	ofstream query_file;
 
 	string filename="s"+to_string(first_stop)+"-s"+to_string(last_stop)+"_t"+to_string(first_q_time)+"+"+to_string(interval)+".txt";
 
-	string results_folder="/home/cathy/Magister/Tesis/trajectory-baseline/queries";
+	//string results_folder="/home/cathy/Magister/Tesis/trajectory-baseline/queries";
 
 	string q_file=results_folder+"/"+filename;
 

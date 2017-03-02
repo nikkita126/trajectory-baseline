@@ -29,7 +29,7 @@ TINDEX_LIB := $(LIBDIR)/tindex.a
 
 UTILITIES_LIB_LIST	:= $(LIBDIR)/stop_encoding.a $(LIBDIR)/distance_graph.a
 
-EXECUTABLES := gen_query codeToInt createIndex queryIndex encode_distances calc_reachability
+EXECUTABLES := gen_query codeToInt createIndex queryIndex encode_distances calc_reachability trips_per_hour
 LIBRARIES 	:= stop_encoding distance_graph
 #CFLAGS := -g # -Wall
 #LIB := -pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
@@ -71,7 +71,7 @@ distance_graph: $(LIBDIR)/distance_graph.a
 
 $(LIBDIR)/%.a: $(BUILDDIR)/%.o
 	@echo "Creating static library $@"
-	@echo "\t\t ar rcvs $@  %<"; ar rcvs $@  $<
+	@echo "\t\t ar rcvs $@  $<"; ar rcvs $@  $<
 	@echo " DONE"
 	@echo ""
 
@@ -92,6 +92,7 @@ createIndex: allTIndex $(BINDIR)/createIndex
 queryIndex: allTIndex $(BINDIR)/queryIndex
 encode_distances: stop_encoding $(BINDIR)/encode_distances
 calc_reachability: distance_graph $(BINDIR)/calc_reachability
+trips_per_hour: tlist tindex stop_encoding $(BINDIR)/trips_per_hour
 
 $(BINDIR)/%: $(SRCDIR)/%.$(SRCEXT)
 	@echo "COMPILING: $@ $<"

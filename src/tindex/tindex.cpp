@@ -289,6 +289,7 @@ int TIndex::startsInQuery(uint s_in, uint t_in, uint interval, btree_map<uint, Q
 	// s_in: starting stop (node), t_in: starting time, interval: accessibility query buffer, results_table: structure to store query results
 
 
+	uint delta_time = 5; //FIX-ME!!!! NO HARD-CODED DELTA
     // starting point
     int time_index = getTimeIndex(s_in,t_in);
 
@@ -347,16 +348,16 @@ int TIndex::startsInQuery(uint s_in, uint t_in, uint interval, btree_map<uint, Q
     size_t id_list_size=tlist->size();
 
     // we iterate over TList's list of trajectories, taking advantage of the fact that they are sorted
-    while(i<id_list_size && tlist->firstStop(i)==s_in && tlist->firstTime(i) == t_in){ 
+    while(i<id_list_size && tlist->firstStop(i)==s_in && tlist->firstTime(i) <= t_in+delta_time){ 
 
     	size_t traj_size=tlist->sizeOfTrajectory(i);
 
-        for(size_t j=0;j!=traj_size;j+=2){ 
+        for(size_t j=0;j!=traj_size;j+=2){ //FIXME: faltan paraderos intermedios????
 			
             size_t destination=j+1; // we only consider the trajectory's segments' destinations FIXME
             uint destination_time=tlist->timeAt(destination,i);
 
-            if(destination_time >= t_in+interval)
+            if(destination_time >= tlist->firstTime(i)+interval) // FIXME: ESO ESTÁ BIEN????
                 break;
 
             // if the point is inside the query buffer, add to the results table
@@ -369,7 +370,7 @@ int TIndex::startsInQuery(uint s_in, uint t_in, uint interval, btree_map<uint, Q
                 results_table.insert(make_pair(destination_stop,*qr));
             }
 
-            uint travel_time=destination_time - t_in;
+            uint travel_time=destination_time - tlist->firstTime(i); //FIXME: CHEQUEAR
             results_table[destination_stop].time_sum+=travel_time;
             results_table[destination_stop].trajectory_count++;
 

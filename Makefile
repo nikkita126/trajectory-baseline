@@ -27,10 +27,10 @@ TINDEX_SOURCES := $(shell find $(TINDEX_SRCDIR) -type f -name *.$(SRCEXT))
 TINDEX_OBJECTS := $(patsubst $(TINDEX_SRCDIR)/%,$(TINDEX_BUILDDIR)/%,$(TINDEX_SOURCES:.$(SRCEXT)=.o))
 TINDEX_LIB := $(LIBDIR)/tindex.a
 
-UTILITIES_LIB_LIST	:= $(LIBDIR)/stop_encoding.a $(LIBDIR)/distance_graph.a
+UTILITIES_LIB_LIST	:= $(LIBDIR)/utils.a $(LIBDIR)/stop_encoding.a $(LIBDIR)/distance_graph.a
 
-EXECUTABLES := gen_query codeToInt createIndex queryIndex encode_distances calc_reachability trips_per_hour
-LIBRARIES 	:= stop_encoding distance_graph
+EXECUTABLES := gen_query codeToInt createIndex queryIndex encode_distances calc_reachability trips_per_hour count_trajectories
+LIBRARIES 	:= utils stop_encoding distance_graph
 #CFLAGS := -g # -Wall
 #LIB := -pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
 LIB := -L $(LIBDIR)
@@ -65,8 +65,8 @@ $(TINDEX_BUILDDIR)/%.o: $(TINDEX_SRCDIR)/%.$(SRCEXT)
 #---------------------------
 # Other Libraries
 
+utils: $(LIBDIR)/utils.a
 stop_encoding: $(LIBDIR)/stop_encoding.a
-
 distance_graph: $(LIBDIR)/distance_graph.a
 
 $(LIBDIR)/%.a: $(BUILDDIR)/%.o
@@ -88,11 +88,12 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 
 gen_query: $(BINDIR)/gen_query
 codeToInt: stop_encoding $(BINDIR)/codeToInt
-createIndex: allTIndex $(BINDIR)/createIndex
-queryIndex: allTIndex $(BINDIR)/queryIndex
+createIndex: utils allTIndex $(BINDIR)/createIndex
+queryIndex: utils allTIndex $(BINDIR)/queryIndex
 encode_distances: stop_encoding $(BINDIR)/encode_distances
-calc_reachability: distance_graph $(BINDIR)/calc_reachability
+calc_reachability: utils distance_graph $(BINDIR)/calc_reachability
 trips_per_hour: tlist tindex stop_encoding $(BINDIR)/trips_per_hour
+count_trajectories: utils tindex
 
 $(BINDIR)/%: $(SRCDIR)/%.$(SRCEXT)
 	@echo "COMPILING: $@ $<"

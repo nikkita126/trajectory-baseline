@@ -1,4 +1,5 @@
 #include <cstdio>
+#include "utils.h"
 #include "tindex.h"
 
 using namespace std;

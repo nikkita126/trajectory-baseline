@@ -6,6 +6,7 @@
 #include "tlist.h"
 #include "tlistreader.h"
 #include "tindex.h"
+#include "utils.h"
 
 using namespace std;
 

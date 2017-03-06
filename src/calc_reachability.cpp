@@ -1,4 +1,7 @@
+
 #include "distance_graph.h"
+#include "utils.h"
+#include <string>
 
 class Time_Info{
 
@@ -29,6 +32,11 @@ class Time_Info{
 
 };
 
+void printUsage(){
+
+	printf("\nUSAGE:\n ./calc_reachability path/encoded_distances_file path/query_data_folder dataset_name in_stop end_stop in_time minute_buffer path/reachability/folder\n");
+
+}
 
 
 void test_queries(Distance_Graph &dg){
@@ -49,9 +57,10 @@ void test_queries(Distance_Graph &dg){
 
 int main(int argc, char **argv){
 
-	string encoded_dist_filename(argv[1]);
+	string encoded_dist_filename=argv[1];
 
 	string separator(";");
+	
 	uint n_stops=11500;
 
 	Distance_Graph *dg = new Distance_Graph(encoded_dist_filename,n_stops,separator);
@@ -77,89 +86,178 @@ int main(int argc, char **argv){
 	/*------------------------*/
 
 
-	//Leer archivo de tiempos y trayectorias
-	ifstream times_file;
-	string infile_name=argv[2];
+	/** Leer archivo de tiempos y trayectorias */
+	ifstream query_data_file;
 
-	times_file.open(infile_name);
+	//FIXME: cambiar por "opciones" de ejecucion
+	string query_data_folder=argv[2];
+	string dataset_name=argv[3];
+	string in_stop_str=argv[4];
+	string end_stop_str=argv[5];
+	string in_time_str=argv[6];
+	string minute_buffer_str=argv[7];
 
-	if(!times_file){
-        printf("ERROR: %s file doesn't exist. Exiting now.\n", infile_name.c_str());
+
+	uint in_stop=stoi(in_stop_str);
+	uint end_stop=stoi(end_stop_str);
+	int in_time=stoi(in_time_str);
+	uint minute_buffer=stoi(minute_buffer_str); 
+
+	if(end_stop<in_stop){
+        printf("ERROR: end_stop id must be higher than in_stop id\n");
         exit(EXIT_FAILURE);
     }
 
+    string out_data;
+    out_data="current_stop,in_time,minute_buffer,total_trips,neighbour_stops,total_dist,max_dist,neighbour_dist_mean,";
+    out_data+="reach_distTrips,reach_distTripsMintime,reach_distTripsMaxtime,reach_distTripsMeantime\n";
 
-	vector<Time_Info> times_vect;
-	uint s_orgn, s_dest;
-	int t_in, t_end, t_sum, traj_count, min_time, max_time;
-	string line;
+	/* Loop: from in_stop to end_stop, to loop through the files */
 
-	while(getline(times_file,line)){
+    for(uint current_stop=in_stop;current_stop<=end_stop;current_stop++){
 
-		sscanf(line.c_str(),"%u %u %d %d %d %d %d %d", &s_orgn,&s_dest, &t_in, &t_end, &t_sum, &traj_count, &min_time, &max_time);
-		Time_Info *time_inf = new Time_Info(s_orgn,s_dest,t_in,t_end,t_sum,traj_count,min_time,max_time);
+		string query_data_filename=query_data_folder+"/"+dataset_name+"-R-"+to_string(current_stop)+"_"+in_time_str+"-"+minute_buffer_str+"min.txt";
 
-		times_vect.push_back(*time_inf);
+		query_data_file.open(query_data_filename);
 
+		if(!query_data_file){
+	        printf("ERROR: %s file doesn't exist. Skipping.\n", query_data_filename.c_str());
+	        query_data_file.close();
+	        continue;
+	        //exit(EXIT_FAILURE);
+	    }
+
+
+		vector<Time_Info> times_vect;
+		uint s_orgn, s_dest;
+		int t_in, t_end, t_sum, traj_count, min_time, max_time;
+		string line;
+
+		while(getline(query_data_file,line)){
+
+			sscanf(line.c_str(),"%u %u %d %d %d %d %d %d", &s_orgn,&s_dest, &t_in, &t_end, &t_sum, &traj_count, &min_time, &max_time);
+			Time_Info *time_inf = new Time_Info(s_orgn,s_dest,t_in,t_end,t_sum,traj_count,min_time,max_time);
+
+			times_vect.push_back(*time_inf);
+
+
+		}
+
+		query_data_file.close();
+
+		/* ---------------------------------- */
+
+
+		/* Metrics */
+		uint total_trips, neighbour_stops, total_dist, max_dist;
+		float reach_distTrips, reach_distTripsMintime, reach_distTripsMaxtime, reach_distTripsMeantime;
+		float neighbour_dist_mean;
+		
+
+		/* Aux variables */
+		float sum_distTrips, sum_distTripsMintime, sum_distTripsMaxtime, sum_distTripsMeantime;
+		uint sum_tripsMintime, sum_tripsMaxtime, sum_tripsMeantime, sum_dist;
+
+		/* ----------------------------------- */
+
+		total_trips=0;
+		total_dist=0;
+		neighbour_stops=0;
+		max_dist=0;
+
+		sum_distTrips=0;
+		sum_distTripsMintime=0;
+		sum_distTripsMaxtime=0;
+		sum_distTripsMeantime=0;
+
+		sum_tripsMintime=0;
+		sum_tripsMaxtime=0;
+		sum_tripsMeantime=0;
+		sum_dist=0;
+
+		for(auto it=times_vect.begin();it!=times_vect.end();it++){
+
+			float distTrips,min,max,mean, dist;
+
+			//printf("%u %u %d %d %d %d %d %d\n",it->s_orgn,it->s_dest, it->t_in, it->t_end, it->t_sum, it->traj_count, it->min_time, it->max_time);
+			
+			dist=dg->getDistance(it->s_orgn,it->s_dest);
+
+			if(dist>max_dist)
+				max_dist=dist;
+
+			distTrips=dist*it->traj_count;
+			min=distTrips*it->min_time;
+			max=distTrips*it->max_time;
+			mean=distTrips*(float)((float)it->t_sum/(float)it->traj_count);
+
+
+			sum_distTrips+=distTrips;
+			sum_distTripsMintime+=min;
+			sum_distTripsMaxtime+=max;
+			sum_distTripsMeantime+=mean;
+
+
+			sum_tripsMintime+=it->min_time*it->traj_count;
+			sum_tripsMaxtime+=it->max_time*it->traj_count;
+			sum_tripsMeantime+=(float)((float)it->t_sum/(float)it->traj_count)*it->traj_count;
+
+			sum_dist+=dist;
+			total_trips+=it->traj_count;
+			total_dist+=distTrips;
+			neighbour_stops++;
+
+		}
+
+		// distancia maxima = max_dist
+		
+		// reachability without times
+		reach_distTrips=(float)((float)total_dist/(float)total_trips);
+
+		// reachability with times
+		reach_distTripsMintime=sum_distTripsMintime/sum_tripsMintime;
+		reach_distTripsMaxtime=sum_distTripsMaxtime/sum_tripsMaxtime;
+		reach_distTripsMeantime=sum_distTripsMeantime/sum_tripsMeantime;
+
+		// mean distance to visited neighbour stops
+		neighbour_dist_mean=(float)((float)sum_dist/(float)neighbour_stops);
+		
+		// distancia ponderada por trayectorias
+		// ponderan considerando el tiempo que me sobró
+
+
+		/* load results into out string */
+		out_data+=to_string(current_stop)+","+in_time_str+","+minute_buffer_str+","+to_string(total_trips)+","+to_string(neighbour_stops)+","+to_string(total_dist)+","+to_string(max_dist)+","+to_string(neighbour_dist_mean)+",";
+    	out_data+=to_string(reach_distTrips)+","+to_string(reach_distTripsMintime)+","+to_string(reach_distTripsMaxtime)+","+to_string(reach_distTripsMeantime)+"\n";
 
 	}
+	/* ------------------- END OF LOOP THROUGH THE FILES ----------------- */
 
-	times_file.close();
+	/**** save values to csv *****/
+	printf("Saving data to CSV file...\n");
+	ofstream outfile;
 
-	float reach_min, reach_max, reach_mean, dist;
-	float ac_min, ac_max, ac_mean;
-	uint sum_min, sum_max, sum_mean,sum_traj,sum_dist,neighbour_stops;
-	float min,max,mean;
+	string reachability_folder=argv[8];
+	string out_filename=reachability_folder+"/Reach_"+dataset_name+"_"+in_stop_str+"-"+end_stop_str+"_"+in_time_str+"_"+minute_buffer_str+"min.csv";
+	//set filename
 
+	outfile.open(out_filename);
 
-	
-	ac_min=0;
-	ac_max=0;
-	ac_mean=0;
-
-	sum_min=0;
-	sum_max=0;
-	sum_mean=0;
-	sum_traj=0;
-	sum_dist=0;
-	neighbour_stops=0;
-
-	for(auto it=times_vect.begin();it!=times_vect.end();it++){
-
-		//printf("%u %u %d %d %d %d %d %d\n",it->s_orgn,it->s_dest, it->t_in, it->t_end, it->t_sum, it->traj_count, it->min_time, it->max_time);
-		dist=dg->getDistance(it->s_orgn,it->s_dest);
-		/*min=dist*it->min_time*it->traj_count;
-		max=dist*it->max_time*it->traj_count;
-		mean=dist*(float)((float)it->t_sum/(float)it->traj_count)*it->traj_count;
-
-		ac_min+=min;
-		ac_max+=max;
-		ac_mean+=mean;
-
-
-		sum_min+=it->min_time*it->traj_count;
-		sum_max+=it->max_time*it->traj_count;
-		sum_mean+=(float)((float)it->t_sum/(float)it->traj_count)*it->traj_count;*/
-
-		sum_dist+=dist;
-		sum_traj+=it->traj_count;
-		neighbour_stops++;
-
-
+	if(!outfile){
+		printf("ERROR: %s file couldn't be open. Exiting now.\n", out_filename.c_str());
+		exit(EXIT_FAILURE);
 	}
-	/*
-	reach_min=ac_min/sum_min;
-	reach_max=ac_max/sum_max;
-	reach_mean=ac_mean/sum_mean;
-	*/
-
-	reach_min=(float)((float)sum_dist/(float)neighbour_stops);
-
-	// guardar resultado (archivo?)
-
-	//printf("Stop %d time %d to %d, Reach min: %f, reach max: %f, reach mean: %f\n",s_orgn,t_in,t_end,reach_min,reach_max,reach_mean);
-	printf("Stop %d time %d to %d, traj count: %d, neighbour stops: %d, Reach dist: %f\n",s_orgn,t_in,t_end,sum_traj,neighbour_stops,reach_min);
 
 
+	outfile<<out_data;
+	//printf("Stop %d time %d to %d, Reach min: %f, reach max: %f, reach mean: %f\n",s_orgn,t_in,t_end,reach_distTripsMintime,reach_distTripsMaxtime,reach_distTripsMeantime);
+	/*printf("Stop %d time %d to %d\n\ttraj count: %d\n\tneighbour stops: %d\n\tdist mean: %f\n",s_orgn,t_in,t_end,total_trips,neighbour_stops,neighbour_dist_mean);
+	printf("\nreach min: %f\treach max: %f\treach mean: %f\n",reach_distTripsMintime,reach_distTripsMaxtime,reach_distTripsMeantime);
+	printf("\nSIN TIEMPOS: reach min: %f\n",a/total_trips);
+*/
+
+	outfile.close();
+
+	printf("... DONE\n");
 	return 0;
 }

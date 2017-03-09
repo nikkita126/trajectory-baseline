@@ -114,6 +114,13 @@ int main(int argc, char **argv){
 
 	/* Loop: from in_stop to end_stop, to loop through the files */
 
+
+	/* For z-scores */
+
+	vector<int,float> reach_dt_vec;
+	int count_reach_dt=0;
+	float sum_reach_dt=0;
+
     for(uint current_stop=in_stop;current_stop<=end_stop;current_stop++){
 
 		string query_data_filename=query_data_folder+"/"+dataset_name+"-R-"+to_string(current_stop)+"_"+in_time_str+"-"+minute_buffer_str+"min.txt";
@@ -121,7 +128,7 @@ int main(int argc, char **argv){
 		query_data_file.open(query_data_filename);
 
 		if(!query_data_file){
-	        printf("ERROR: %s file doesn't exist. Skipping.\n", query_data_filename.c_str());
+	        printf("WARNING: %s file doesn't exist. Skipping.\n", query_data_filename.c_str());
 	        query_data_file.close();
 	        continue;
 	        //exit(EXIT_FAILURE);
@@ -149,7 +156,8 @@ int main(int argc, char **argv){
 
 
 		/* Metrics */
-		uint total_trips, neighbour_stops, total_dist, max_dist;
+		unsigned long long total_dist; //in case it gets too big
+		uint total_trips, neighbour_stops, max_dist;
 		float reach_distTrips, reach_distTripsMintime, reach_distTripsMaxtime, reach_distTripsMeantime;
 		float neighbour_dist_mean;
 		
@@ -174,6 +182,7 @@ int main(int argc, char **argv){
 		sum_tripsMaxtime=0;
 		sum_tripsMeantime=0;
 		sum_dist=0;
+
 
 		for(auto it=times_vect.begin();it!=times_vect.end();it++){
 
@@ -230,6 +239,10 @@ int main(int argc, char **argv){
 		out_data+=to_string(current_stop)+","+in_time_str+","+minute_buffer_str+","+to_string(total_trips)+","+to_string(neighbour_stops)+","+to_string(total_dist)+","+to_string(max_dist)+","+to_string(neighbour_dist_mean)+",";
     	out_data+=to_string(reach_distTrips)+","+to_string(reach_distTripsMintime)+","+to_string(reach_distTripsMaxtime)+","+to_string(reach_distTripsMeantime)+"\n";
 
+    	reach_dt_vec.push_back(<int,float>(current_stop,reach_distTrips)); //acumulate reachability in vector
+    	sum_reach_dt+=reach_distTrips;
+    	count_reach_dt++;
+
 	}
 	/* ------------------- END OF LOOP THROUGH THE FILES ----------------- */
 
@@ -257,6 +270,55 @@ int main(int argc, char **argv){
 */
 
 	outfile.close();
+
+
+	printf("DONE\n");
+
+	printf("Calculating z-scores...\n");
+
+	/* Z-SCORES */
+
+	// std dev
+	float mean_reach_dt = (float)(sum_reach_dt/count_reach_dt);
+
+	float std_dev = 0;
+	float var=0;
+	for(auto it = reach_dt_vec.begin();it!=reach_dt_vec.end();it++ ){
+		var += (it->second - mean_reach_dt) * (it->second - mean_reach_dt);
+	}
+	var /= count_reach_dt;
+	std_dev = sqrt(var);
+
+
+	// z-score
+
+	ofstream outfile_z;
+
+	string reachability_folder=argv[8];
+	string out_filename_z=reachability_folder+"/Z_"+dataset_name+"_"+in_stop_str+"-"+end_stop_str+"_"+in_time_str+"_"+minute_buffer_str+"min.csv";
+	//set filename
+
+	outfile_z.open(out_filename_z);
+
+	if(!outfile_z){
+		printf("ERROR: %s  file couldn't be open. Exiting now.\n", out_filename.c_str());
+		exit(EXIT_FAILURE);
+	}
+
+
+	string out_data_z="stop,z_score\n";
+
+
+	float z=0;
+
+
+	for(auto it = reach_dt_vec.begin();it!=reach_dt_vec.end();it++ ){
+		z=(float)((it->second - mean_reach_dt)/(std_dev));
+		out_data_z+=to_string(stop)+","+to_string(z)+"\n";
+	}
+
+	outfile_z.close();
+
 
 	printf("... DONE\n");
 	return 0;

@@ -17,7 +17,7 @@ QUERY_DATA_FOLDER=""$PROJECT_ROOT"/query_data/time_q"
 DATASET_NAME="sorted_transantiago_encoded_trips"
 IN_STOP="1"
 END_STOP="11270"
-IN_TIME="504"
+IN_TIME="372"
 MINUTE_BUFFER="60"
 REACHABILITY_FOLDER=""$PROJECT_ROOT"/other_extracted_data/reachability"
 

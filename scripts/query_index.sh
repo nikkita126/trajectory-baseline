@@ -36,11 +36,14 @@ mkdir -p "$RESULTS_DIR"/time_q
 #	i=$((i+288))
 #done
 
-QUERY_FILE=""$PROJECT_ROOT"/queries/s1-s11270_t372+12.txt"
+QUERY_FILE=""$PROJECT_ROOT"/queries/s1-s11270_t1812+12.txt"
 ./"$PROJECT_ROOT"/bin/queryIndex "$SORTED_DATASET" "$STRUCTURE_DIR" "$RESULTS_DIR"/time_q < "$QUERY_FILE"
 
-QUERY_FILE=""$PROJECT_ROOT"/queries/s1-s11270_t432+12.txt"
+QUERY_FILE=""$PROJECT_ROOT"/queries/s1-s11270_t1944+12.txt"
 ./"$PROJECT_ROOT"/bin/queryIndex "$SORTED_DATASET" "$STRUCTURE_DIR" "$RESULTS_DIR"/time_q < "$QUERY_FILE"
 
-QUERY_FILE=""$PROJECT_ROOT"/queries/s1-s11270_t504+12.txt"
+QUERY_FILE=""$PROJECT_ROOT"/queries/s1-s11270_t2100+12.txt"
+./"$PROJECT_ROOT"/bin/queryIndex "$SORTED_DATASET" "$STRUCTURE_DIR" "$RESULTS_DIR"/time_q < "$QUERY_FILE"
+
+QUERY_FILE=""$PROJECT_ROOT"/queries/s1-s11270_t2232+12.txt"
 ./"$PROJECT_ROOT"/bin/queryIndex "$SORTED_DATASET" "$STRUCTURE_DIR" "$RESULTS_DIR"/time_q < "$QUERY_FILE"

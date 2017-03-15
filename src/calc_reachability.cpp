@@ -2,6 +2,7 @@
 #include "distance_graph.h"
 #include "utils.h"
 #include <string>
+//#include <utility>
 
 class Time_Info{
 
@@ -117,7 +118,7 @@ int main(int argc, char **argv){
 
 	/* For z-scores */
 
-	vector<int,float> reach_dt_vec;
+	vector<pair<int,float> > reach_dt_vec;
 	int count_reach_dt=0;
 	float sum_reach_dt=0;
 
@@ -239,7 +240,7 @@ int main(int argc, char **argv){
 		out_data+=to_string(current_stop)+","+in_time_str+","+minute_buffer_str+","+to_string(total_trips)+","+to_string(neighbour_stops)+","+to_string(total_dist)+","+to_string(max_dist)+","+to_string(neighbour_dist_mean)+",";
     	out_data+=to_string(reach_distTrips)+","+to_string(reach_distTripsMintime)+","+to_string(reach_distTripsMaxtime)+","+to_string(reach_distTripsMeantime)+"\n";
 
-    	reach_dt_vec.push_back(<int,float>(current_stop,reach_distTrips)); //acumulate reachability in vector
+    	reach_dt_vec.push_back(make_pair(current_stop,reach_distTrips)); //acumulate reachability in vector
     	sum_reach_dt+=reach_distTrips;
     	count_reach_dt++;
 
@@ -294,7 +295,6 @@ int main(int argc, char **argv){
 
 	ofstream outfile_z;
 
-	string reachability_folder=argv[8];
 	string out_filename_z=reachability_folder+"/Z_"+dataset_name+"_"+in_stop_str+"-"+end_stop_str+"_"+in_time_str+"_"+minute_buffer_str+"min.csv";
 	//set filename
 
@@ -314,9 +314,10 @@ int main(int argc, char **argv){
 
 	for(auto it = reach_dt_vec.begin();it!=reach_dt_vec.end();it++ ){
 		z=(float)((it->second - mean_reach_dt)/(std_dev));
-		out_data_z+=to_string(stop)+","+to_string(z)+"\n";
+		out_data_z+=to_string(it->first)+","+to_string(z)+"\n";
 	}
 
+	outfile_z<<out_data_z;
 	outfile_z.close();
 
 

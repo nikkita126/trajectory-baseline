@@ -35,6 +35,8 @@
 *.tlist
 *.tar.gz
 
+# Test files
+*.test
 
 # Imagenes
 *.png

@@ -176,8 +176,9 @@ size_t TIndex::getEndingIdIndex(uint s, size_t time_index){
 
 	if(time_index==tindex[s].n_times-1)
 		e_index=tindex[s].n_ids-1;
-	else
-		e_index=tindex[s].prev_n_trajectories[time_index+1];
+	else{
+		e_index=tindex[s].prev_n_trajectories[time_index+1]-1;
+	}
 	//printf("DEBUGGING: ending index: %u\n",(uint)e_index);
 
 	return e_index;
@@ -262,6 +263,7 @@ void TIndex::printPrevTrajList(uint s){
 
 int TIndex::getTimeIndex(uint s, uint t){
 	// s: stop, t: time
+	// probado: esta bien esta busqueda 
 
     size_t l=0, r=(size_t)tindex[s].n_times-1, m;
 
@@ -269,124 +271,149 @@ int TIndex::getTimeIndex(uint s, uint t){
         
         m=l+(r-l)/2;
 
-        if(tindex[s].times_list[m]==t)
-        	return m;
-
-        else if(tindex[s].times_list[m] < t) //time is smaller than the given one
+       if(tindex[s].times_list[m] < t) //time is smaller than the given one
             l=m+1;
         else
             r=m;
 
     }
 
+    /*
     if(tindex[s].times_list[l]!=t)
     	return -1;
+    */
+
 
     return (int)l;
 }
 
-int TIndex::startsInQuery(uint s_in, uint t_in, uint interval, btree_map<uint, QueryResult > &results_table){
-	// s_in: starting stop (node), t_in: starting time, interval: accessibility query buffer, results_table: structure to store query results
+int TIndex::aggregatedReachability(uint s_in, uint interval, uint t_in, uint t_end, btree_map<uint, QueryResult > &results_table){
+	// s_in: starting stop (node), interval: query buffer, t_in: starting time, t_end: ending time, results_table: structure to store query results
+	// query finds destinations of trips that start in s_in within [t_ind,t_end), travelling for at most interval time instants
+
+    int time_index_min = getTimeIndex(s_in,t_in); //indice del primer tiempo >= t_in
+    int time_index_max = getTimeIndex(s_in,t_end); // indice del primer tiempo >= t_end
+																							
+    //printf("DEBUGGING: tiempo que devuelve: %d\n",tindex[s_in].times_list[time_index_min]);
 
 
-	uint delta_time = 5; //FIX-ME!!!! NO HARD-CODED DELTA
-    // starting point
-    int time_index = getTimeIndex(s_in,t_in);
 
-    if(time_index==-1){
+
+
+    if(tindex[s_in].times_list[time_index_min] < t_in || tindex[s_in].times_list[time_index_min] >=t_end){
     	// UNCOMMENT IF DEBUGGING
-		//printf("ERROR: (%u,%u) not found in dataset\n",s_in,t_in);
+		// ERROR: no times found in query range (todos los tiempos son menores que el tiempo inicial del rango)
+
         return -1;
 
     }
 
+
+
     //--------------------------------------
-    // find the id of the smallest trajectory that starts in (s_in,t_in)
-
-    uint starting_traj_id;
-   
-    size_t left_index=getStartingIdIndex(s_in,(size_t)time_index);
-    size_t right_index=getEndingIdIndex(s_in,(size_t)time_index);
-
-    uint l=left_index, r=right_index, m, traj_id;
-    uint traj_first_stop, traj_first_time;
-    pair<uint,uint> tmp_pair;
-
-    while(l<r){ // bin search to find starting trajectory id
-        
-        m=l+(r-l)/2;
-        traj_id = tindex[s_in].ids_list[m];
-        traj_first_stop=tlist->firstStop(traj_id);
-        traj_first_time=tlist->firstTime(traj_id);
-
-        //tmp_pair=make_pair(s_in,actual_starting_time);
-
-        if(traj_first_stop < s_in || (!(traj_first_stop>s_in) && traj_first_time<t_in) ){ // "smaller" trajectories than the ones of interest
-            l=m+1;
-
-        }
-        else
-            r=m;
-
-//            cout<<"l: "<<l<<" m: "<<m<<" r: "<<r<<endl;
-    }
-
-   	starting_traj_id=tindex[s_in].ids_list[l]; 
-
-   	//printf("DEBUGGING: %\n");
-
-    if(tlist->firstStop(starting_traj_id)!=s_in || tlist->firstTime(starting_traj_id)!=t_in){
-    	//UNCOMMENT IF DEBUGGING
-    	//printf("There are no trips that start in (%u,%u)\n",s_in,t_in);
-    	return -1;
-    }
-    //---------------------------------------------
+    // iteramos sobre los tiempos
 
     int destinations_cont=0;
 
-    uint i=starting_traj_id;
-    size_t id_list_size=tlist->size();
+    for(int time_index=time_index_min;time_index<time_index_max;time_index++){
+    	int curr_time=tindex[s_in].times_list[time_index];
 
-    // we iterate over TList's list of trajectories, taking advantage of the fact that they are sorted
-    while(i<id_list_size && tlist->firstStop(i)==s_in && tlist->firstTime(i) <= t_in+delta_time){ 
+    
+    // find the id of the smallest trajectory that *starts* in (s_in,curr_time)
 
-    	size_t traj_size=tlist->sizeOfTrajectory(i);
+	    uint starting_traj_id;
+	   
+	    size_t left_index=getStartingIdIndex(s_in,(size_t)time_index);
+	    size_t right_index=getEndingIdIndex(s_in,(size_t)time_index);
 
-        for(size_t j=0;j!=traj_size;j+=2){ //FIXME: faltan paraderos intermedios????
-			
-            size_t destination=j+1; // we only consider the trajectory's segments' destinations FIXME
-            uint destination_time=tlist->timeAt(destination,i);
+		
+	    uint l=left_index, r=right_index, m, traj_id;
+	    uint traj_first_stop, traj_first_time;
+	    pair<uint,uint> tmp_pair;
 
-            if(destination_time >= tlist->firstTime(i)+interval) // FIXME: ESO ESTÁ BIEN????
-                break;
+	    while(l<r){ // bin search to find starting trajectory id
+	        
+	        m=l+(r-l)/2;
+	        traj_id = tindex[s_in].ids_list[m];
+	        traj_first_stop=tlist->firstStop(traj_id);
+	        traj_first_time=tlist->firstTime(traj_id);
 
-            // if the point is inside the query buffer, add to the results table
-            uint destination_stop = tlist->stopAt(destination,i);
-            auto it = results_table.find(destination_stop);
+	        //tmp_pair=make_pair(s_in,actual_starting_time);
 
-            if (it == results_table.end()){
+	        if(traj_first_stop < s_in || (!(traj_first_stop>s_in) && traj_first_time<t_in) ){ // "smaller" trajectories than the ones of interest
+	            l=m+1;
 
-            	QueryResult *qr = new QueryResult();
-                results_table.insert(make_pair(destination_stop,*qr));
-            }
+	        }
+	        else
+	            r=m;
 
-            uint travel_time=destination_time - tlist->firstTime(i); //FIXME: CHEQUEAR
-            results_table[destination_stop].time_sum+=travel_time;
-            results_table[destination_stop].trajectory_count++;
+	//            cout<<"l: "<<l<<" m: "<<m<<" r: "<<r<<endl;
+	    }
 
-            if(travel_time < results_table[destination_stop].min_time)
-                results_table[destination_stop].min_time = travel_time;
+	   	starting_traj_id=tindex[s_in].ids_list[l];
+	   	uint starting_stop=tlist->firstStop(starting_traj_id);
+	   	uint starting_time=tlist->firstTime(starting_traj_id);
 
-            if(travel_time > results_table[destination_stop].max_time)
-                results_table[destination_stop].max_time = travel_time;
-            
-            destinations_cont++;
-        }
+	   	//printf("DEBUGGING: %\n");
 
-        i++;
-    }
+	    //if(tlist->firstStop(starting_traj_id)!=s_in || tlist->firstTime(starting_traj_id)<t_in || tlist->firstTime(starting_traj_id)>=t_end){
+	    if(starting_stop!=s_in || starting_time!=curr_time){
+	    	
+	    	//UNCOMMENT IF DEBUGGING
+	    	//printf("There are no trips that start in (%u,%u)\n",s_in,t_in);
 
-    return 0;
+	    	continue; //probar con el siguiente tiempo
+	    }
+	    //---------------------------------------------
+
+
+	    uint i=starting_traj_id;
+	    uint ending_traj_id=tindex[s_in].ids_list[right_index];
+	    size_t id_list_size=tlist->size();
+
+	    // we iterate over TList's list of trajectories, taking advantage of the fact that they are sorted
+	    //while(i<id_list_size && tlist->firstStop(i)==s_in && tlist->firstTime(i) >= t_in && tlist->firstTime(i)<t_end){ 
+	    while(i<= ending_traj_id && tlist->firstStop(i)==s_in && tlist->firstTime(i) == curr_time){ 
+	    	
+
+	    	size_t traj_size=tlist->sizeOfTrajectory(i);
+
+	        for(size_t j=1;j!=traj_size;j++){ //nos saltamos j=0 porque es el mismo nodo inicial, no hay viaje
+
+	            size_t destination=j;
+	            uint destination_time=tlist->timeAt(destination,i);
+
+	            if(destination_time >= curr_time+interval) // comprueba que el tiempo del nodo visitado este dentro del rango
+	                break;
+
+	            // if the point is inside the query buffer, add to the results table
+	            uint destination_stop = tlist->stopAt(destination,i);
+	            auto it = results_table.find(destination_stop);
+
+	            if (it == results_table.end()){
+	            	
+	            	QueryResult *qr = new QueryResult();
+	                results_table.insert(make_pair(destination_stop,*qr));
+	            }
+
+	            uint travel_time=destination_time - curr_time + 1;
+	            results_table[destination_stop].time_sum+=travel_time;
+	            results_table[destination_stop].trajectory_count++;
+
+	            if(travel_time < results_table[destination_stop].min_time)
+	                results_table[destination_stop].min_time = travel_time;
+
+	            if(travel_time > results_table[destination_stop].max_time)
+	                results_table[destination_stop].max_time = travel_time;
+	            
+	            destinations_cont++;
+	        }
+
+	        i++;
+	    }
+	}
+
+    return destinations_cont;
 
 }
 

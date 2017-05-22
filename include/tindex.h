@@ -68,7 +68,7 @@ public:
 	uint totalStops(); // return total stops included in tlist
 	uint totalTrajectories(); // return number of trajectories in tlist 
 	// query functions
-	int startsInQuery(uint s_in, uint t_in, uint interval, btree_map<uint, QueryResult > &results_table); // accessibility query for real trajectories
+	int aggregatedReachability(uint s_in, uint interval, uint t_in, uint t_end, btree_map<uint, QueryResult > &results_table); // accessibility query for real trajectories
 
 	int includesQuery(uint s, uint t, uint interval, btree_map<uint, QueryResult > &results_table); // accessibility query for potential trajectories - NOT IMPLEMENTED YET
 

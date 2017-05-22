@@ -47,6 +47,8 @@
 
 # Folders
 /visual/capas/
+/compression
+/integer_encoding_library/
 # Executables
 /bin/
 # Objects
@@ -58,3 +60,4 @@
 /test_data/
 /other_extracted_data/
 /datasets
+.DS_Store

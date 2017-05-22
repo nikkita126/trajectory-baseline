@@ -35,6 +35,8 @@
 *.tlist
 *.tar.gz
 
+# Test files
+*.test
 
 # Imagenes
 *.png
@@ -43,11 +45,10 @@
 # Swap files
 *.swp
 
-# Mac whatever
-.DS_Store
-
 # Folders
 /visual/capas/
+/compression
+/integer_encoding_library/
 # Executables
 /bin/
 # Objects
@@ -59,3 +60,4 @@
 /test_data/
 /other_extracted_data/
 /datasets
+.DS_Store

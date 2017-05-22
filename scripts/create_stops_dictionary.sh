@@ -1,0 +1,1 @@
+../bin/build_stops_dictionary ../datasets/stops_codigousuario_coords.txt ../structures/stops.dict

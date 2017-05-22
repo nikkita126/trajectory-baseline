@@ -2,47 +2,60 @@
 
 using namespace std;
 
+#define MAX_QUERIES 13000
+#define MINUTES_SAMPLE 5
+
+typedef struct{
+
+    uint s_in;
+    uint interval;
+    uint t_in;
+    uint t_end;
+} ReachQuery;
+
+
 void printUsage(){
 
 	printf("\nUSAGE:\n ./useIndex dataset_name path/index/folder path/results/folder < path/query/file\n");
 
 }
 
-int processQuery(uint s_in, uint t_in, uint t_interval, bool origin_only, TIndex &ti, btree_map<uint,QueryResult > &results_table){
+ReachQuery * readQueries(int *nqueries){
 
-    if(s_in > ti.totalStops()){ // check that stop id is on the list
+    ReachQuery *query_list = (ReachQuery *) malloc(MAX_QUERIES * sizeof(ReachQuery));
+    int count=0;
+    uint s_in, interval, t_in, t_end;
 
-        printf("\nERROR: stop %u not found in dataset\n", s_in);
+    while(EOF != scanf("%u %u %u %u", &s_in,&interval,&t_in, &t_end)){ //read until the end of a query file
+        
+        ReachQuery *q=&query_list[count];
+        q->s_in=s_in;
+        q->interval=interval;
+        q->t_in=t_in;
+        q->t_end=t_end;
+        count++;
+    }
+    *nqueries=count;
+    return query_list;
+}
+
+int processQuery(ReachQuery rq, TIndex &ti, btree_map<uint,QueryResult > &results_table){
+
+    if(rq.s_in > ti.totalStops()){ // check that stop id is on the list
+
+        printf("\nERROR: stop %u not found in dataset\n", rq.s_in);
         return -1;
     }
 
     results_table.clear();
 
-    int catch_error;
+    int total_neighbors;
 
-    if(origin_only){
+    //printf("DEBUGGING: s_in: %d interval: %d t_in: %d t_end: %d\n",rq.s_in, rq.interval,rq.t_in, rq.t_end);
 
-        catch_error=ti.startsInQuery(s_in, t_in, t_interval, results_table);
+    total_neighbors=ti.aggregatedReachability(rq.s_in, rq.interval,rq.t_in, rq.t_end, results_table);     
 
-        if(catch_error==-1){
-            /* UNCOMMENT IF DEBUGGING */
-            //printf("\nERROR: query %u,%u,%u, %s couldn't be executed\n",s_in,t_in,t_interval, origin_only ? "true": "false" );
-            return -1;
-        }      
-
-    }
-    else{
-        // FIX-ME: AWAITING FOR includesQuery TO BE IMPLEMENTED
-        /*
-        catch_error=ti.includesQuery(s_in, t_in, t_interval, results_table)); // NOT IMPLEMENTED YET
-
-        if(catch_error==-1){
-            printf("ERROR: query %u,%u,%u, %s couldn't be executed\n",s_in,t_in,t_interval, origin_only ? "true": "false" );
-            return -1;
-        }  */
-    }
-
-    return 0;
+    return total_neighbors;
 }
 
 int main(int argc, char *argv[]){
@@ -131,11 +144,11 @@ printf("-------------\n");
 	// ACCESIBILITY QUERIES
 	// (for *real* trajectories)
 
-    uint s_in, t_in, t_interval, origin_only;
-    int err, q_read, q_processed;
-    btree_map<uint, QueryResult > results_table;  
+    uint s_in, t_in, t_end, t_interval;
+    int total_neighbors, q_read, q_processed;
+    btree_map<uint, QueryResult > results_table;
     
-    printf("\nReading and executing queries from query file...\n");
+    printf("\nReading queries from query file...\n");
 
     ofstream query_results_file;    
     string output_file, query_type;
@@ -143,24 +156,30 @@ printf("-------------\n");
 
     q_read=0;
     q_processed=0;
-    // reads from input file
- 	while(EOF != scanf("%u %u %u %u", &s_in,&t_in, &t_interval, &origin_only)){ //read until the end of a query file
+    
+    // reads from input file (redirected input when executing the program)
+    ReachQuery *query_list=readQueries(&q_read);
+    printf("\tDONE\n");
+    printf("\t%d queries read\n", q_read);
+
+    printf("\nProcessing...\n");
+
+    int ten_perc=q_read/10;
+ 	while(q_processed<q_read){ //iterate over read queries
+        if(!(q_processed%ten_perc))
+            printf("\t%d queries processed...\n", q_processed);
         
-        //if(!s_in && !t_in && !t_interval && !origin_only) break; //read until 0 0 0 0
-
-        q_read++; // read queries
-
-        err=processQuery(s_in,t_in,t_interval,origin_only,*ti,results_table);
+        ReachQuery query = query_list[q_processed];
+        total_neighbors=processQuery(query,*ti,results_table);
 
         //printf("DEBUGGING: results_table.size = %u\n", (uint)results_table.size());
 
-        if(err==-1)
+        if(total_neighbors<1){
+            q_processed++;
             continue;
+        }
 
-        if(origin_only) query_type="R"; // indicates that query is on real trajectories only
-        else query_type="P"; // indicates that query includes potential trajectories
-
-        output_file=results_folder+"/"+dataset_filename+"-"+query_type+"-"+to_string(s_in)+"_"+to_string(t_in)+"-"+to_string(t_interval*5)+"min.txt";
+        output_file=results_folder+"/"+dataset_filename+"-"+to_string(query.s_in)+"-"+to_string(query.t_in)+"_"+to_string(query.t_end)+"-"+to_string(query.interval*MINUTES_SAMPLE)+"min.txt";
         query_results_file.open(output_file);
         //bool first_line=true;
         if(query_results_file){ // save query results to file
@@ -168,8 +187,8 @@ printf("-------------\n");
                 //if(first_line) first_line=false;
                 //else query_results_file<<"\n";
                 
-                /* origin,destination,[starting_query_time,ending_query_time),time_sum,trajectory_count,min_time,max_time */
-                query_results_file<<s_in<<" "<<it->first<<" "<<t_in<<" "<<t_in+t_interval<<" "<<(it->second.time_sum)*5<<" "<<it->second.trajectory_count<<" "<<(it->second.min_time)*5<<" "<<(it->second.max_time)*5<<"\n";
+                /* origin,destination,[starting_query_time,ending_query_time),interval*MINUTES_SAMPLE,time_sum*MINUTES_SAMPLE,trajectory_count,min_time*MINUTES_SAMPLE,max_time*MINUTES_SAMPLE */
+                query_results_file<<query.s_in<<" "<<it->first<<" "<<query.t_in<<" "<<query.t_end<<" "<<query.interval*MINUTES_SAMPLE<<" "<<(it->second.time_sum)*MINUTES_SAMPLE<<" "<<it->second.trajectory_count<<" "<<(it->second.min_time)*MINUTES_SAMPLE<<" "<<(it->second.max_time)*MINUTES_SAMPLE<<"\n";
                 
             }
             query_results_file.close();

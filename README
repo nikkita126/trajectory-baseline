@@ -4,19 +4,25 @@ A trajectory is a sequence of points visited by a single person, of the followin
 
 S_1 T_1 ... S_n T_n, where S is a stop, T is the time associated with the stop and 2 <= n <= 8 (n being an even number)
 
-All stops and times in a trajectory need to be encoded as integers for the structures to be able to read and store them
+All stops and times in a trajectory need to be encoded as integers for the structures to be able to read and store them.
 
 
-** Source tree organisation and folder description
+This structure supports a particular temporal reachability query, defined as follows:
+Given a stop S, a starting time instant T_i, and ending time instant T_e and a time range R, the query returns all stops that are reachable from S by following any trajectory that starts at S at any time within [T_i, T_e) and travelling at most R time instants. For every reachable stop, the query also return some statistical information such as number of trajectories that led to that stop, sum of temporal distance to the origin stop of the query, among others.
+
+
+## Source tree organisation and folder description
 
 	The most interesting ones:
 
 	* /scripts/: Scripts that manage the index creation and querying process. They don't expect arguments.
 
 	* /bin/: Executables. It contains:
+		- build_stops_dictionary: Loads a file with information about stops (int id and coordinates), and builds a dictionary-of-sorts structure with it
 		- codeToInt: Transforms a trajectory file containing stop names and timestamps into its encoded version (with ints)
 		- createIndex: Creates a TList and TIndex from a sorted, encoded trajectory file and saves the structures into files
 		- queryIndex: Loads TList and TIndex from files and allows querying them (to obtain accesibility measures)
+		- calc_reachability: To compute transportation reachability measures
 
 	* /src/: All source files (.cpp) are here.
 
@@ -30,14 +36,13 @@ All stops and times in a trajectory need to be encoded as integers for the struc
 
 	* /lib/: The place to store libraries.
 
-	* /queries/: Query files go here.
+	* /reach_queries/: Reachability query files go here.
 		A query file contains one or more lines, where each line is a single query.
-		A query is composed of 4 integers: s,t,i,o with spaces between them, where
+		A query is composed of 4 integers: s,r,t_s,t_e with spaces between them, where
 			- "s" is a stop id
-			- "t" is the initial time (a discrete time point)
-			- "i" is the amount of discrete time points that compose the query buffer (each time represents 5 minutes; then, i=12 means a query buffer of 1 hour)
-			- "o" should be 1 for every query over real trajectories only. It is a flag to indicate that we're only interested in trajectories 
-				that *start* in (s,t) -as opposed to the ones that *include* (s,t)-
-		An independent resulting file is saved for every individual query in the /query_data/ folder.
+			- "r" is the amount of discrete time points that compose the query range (each time represents 5 minutes; then, i=12 means a query buffer of 1 hour)
+			- "t_i" is the starting time (a discrete time point)		
+			- "t_f" is the ending time
+		An independent resulting file for every individual query is saved in query_results/reachability/<dataset>/<time_interval>/
 
-	* /structures/: TList and TIndex binary files are stored here
+	* /structures/: Stores all files necessary to load and reconstruct structures previously built and saved.

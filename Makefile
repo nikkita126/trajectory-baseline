@@ -29,7 +29,7 @@ TINDEX_LIB := $(LIBDIR)/tindex.a
 
 UTILITIES_LIB_LIST	:= $(LIBDIR)/utils.a $(LIBDIR)/stop_encoding.a $(LIBDIR)/distance_graph.a $(LIBDIR)/stops_dictionary.a
 
-EXECUTABLES := gen_query codeToInt createIndex queryIndex encode_distances calc_reachability trips_per_hour count_trajectories build_stops_dictionary test_stops_dictionary
+EXECUTABLES := gen_query codeToInt createIndex queryIndex encode_distances calc_reachability trips_per_hour count_trajectories build_stops_dictionary test_stops_dictionary distsOnRoute
 LIBRARIES 	:= utils stop_encoding distance_graph stops_dictionary
 #CFLAGS := -g # -Wall
 #LIB := -pthread -lmongoclient -L lib -lboost_thread-mt -lboost_filesystem-mt -lboost_system-mt
@@ -97,6 +97,7 @@ trips_per_hour: tlist tindex stop_encoding $(BINDIR)/trips_per_hour
 count_trajectories: utils tindex
 build_stops_dictionary: stops_dictionary $(BINDIR)/build_stops_dictionary
 test_stops_dictionary: stops_dictionary build_stops_dictionary $(BINDIR)/test_stops_dictionary
+distsOnRoute: stop_encoding $(BINDIR)/distsOnRoute
 
 $(BINDIR)/%: $(SRCDIR)/%.$(SRCEXT)
 	@echo "COMPILING: $@ $<"

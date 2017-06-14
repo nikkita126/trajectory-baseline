@@ -8,7 +8,6 @@
 #include "cppUtils.h"
 #include "stop_encoding.h"
 
-#define STARTING_DATE_DAY 14
 #define SEPARATOR ";"
 
 using namespace std;

@@ -115,8 +115,12 @@ void createDictionary(map<string,int> &dictionary, ifstream &file, string separa
 
     		pos=line.find(separator);
 
+    		if(pos==string::npos)
+    			break;
+
     		name=line.substr(0,pos); 
     		code_str=line.substr(pos+1);
+    		//cout<<"CODE STR: "<<code_str<<endl;
     		code=stoi(code_str);
 		
 			//cout<<name<<" "<<code<<endl;

@@ -8,7 +8,7 @@
 #include <string>
 #include <fstream>
 
-#define MAX_NODES 11290
+#define MAX_NODES 11700
 
 typedef unsigned int uint;
 

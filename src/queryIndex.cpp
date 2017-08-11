@@ -41,9 +41,8 @@ ReachQuery * readQueries(int *nqueries){
 
 int processQuery(ReachQuery rq, TIndex &ti, btree_map<uint,QueryResult > &results_table){
 
-    if(rq.s_in > ti.totalStops()){ // check that stop id is on the list
-
-        printf("\nERROR: stop %u not found in dataset\n", rq.s_in);
+    if(!ti.isInDataset(rq.s_in)){
+        // stop not found in dataset
         return -1;
     }
 
@@ -145,7 +144,7 @@ printf("-------------\n");
 	// (for *real* trajectories)
 
     uint s_in, t_in, t_end, t_interval;
-    int total_neighbors, q_read, q_processed;
+    int total_neighbors, q_read, q_processed, q_success;
     btree_map<uint, QueryResult > results_table;
     
     printf("\nReading queries from query file...\n");
@@ -156,6 +155,7 @@ printf("-------------\n");
 
     q_read=0;
     q_processed=0;
+    q_success=0;
     
     // reads from input file (redirected input when executing the program)
     ReachQuery *query_list=readQueries(&q_read);
@@ -197,10 +197,11 @@ printf("-------------\n");
             exit(EXIT_FAILURE);
    
         q_processed++; // processed queries
+        q_success++;
 
     }
 
-    printf("\tDONE.\nQueries read: %d\tQueries processed: %d\n", q_read, q_processed);
+    printf("\tDONE.\nQueries read: %d\tQueries processed: %d\t Successful queries: %d\n", q_read, q_processed,q_success);
         
     return 0;
 

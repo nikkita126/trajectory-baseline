@@ -263,7 +263,7 @@ void TIndex::printPrevTrajList(uint s){
 
 int TIndex::getTimeIndex(uint s, uint t){
 	// s: stop, t: time
-	// probado: esta bien esta busqueda 
+	// probado: esta bien esta busqueda
 
     size_t l=0, r=(size_t)tindex[s].n_times-1, m;
 
@@ -296,12 +296,7 @@ int TIndex::aggregatedReachability(uint s_in, uint interval, uint t_in, uint t_e
 																							
     //printf("DEBUGGING: tiempo que devuelve: %d\n",tindex[s_in].times_list[time_index_min]);
 
-
-
-
-
     if(tindex[s_in].times_list[time_index_min] < t_in || tindex[s_in].times_list[time_index_min] >=t_end){
-    	// UNCOMMENT IF DEBUGGING
 		// ERROR: no times found in query range (todos los tiempos son menores que el tiempo inicial del rango)
 
         return -1;
@@ -417,6 +412,15 @@ int TIndex::aggregatedReachability(uint s_in, uint interval, uint t_in, uint t_e
 
 }
 
+bool TIndex::isInDataset(uint s){
+
+	if(!tindex[s].n_times || s>totalStops())
+		return false;
+
+	return true;
+
+}
+
 void loadListAndIndex(TList *tlist, ifstream &list_file, TIndex *tindex, ifstream &index_file){
 
 	tlist = TList::load(list_file);
@@ -424,3 +428,4 @@ void loadListAndIndex(TList *tlist, ifstream &list_file, TIndex *tindex, ifstrea
 	tindex = TIndex::load(index_file,tlist);
 
 }
+

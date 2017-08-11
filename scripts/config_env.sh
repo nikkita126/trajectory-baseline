@@ -23,6 +23,10 @@ export _DATASETS_DIR=""$_PROJECT_ROOT"/datasets"
 
 
 # viajes [20.00,20.30) lunes 15/04/2013, duracion 1 hora
-export _T_IN=$(( 12*20 + 288*7 ))
-export _T_END=$(( _T_IN + 6 ))
+#export _T_IN=$(( 12*20 + 288*7 ))
+#export _T_END=$(( _T_IN + 6 ))
+#export _ITV=12
+
+export _T_IN=$(( 12*7 + 6 + 288*1 ))
+export _T_END=$(( _T_IN + 12 ))
 export _ITV=12

@@ -24,6 +24,7 @@ TListReader* readData(ifstream &infile){
 	uint stop_int,time_int;
 	uint cont_traj;
 	uint maxtime=0;
+	uint maxstop=0;
 
 	btree_set<uint> stops;
     
@@ -51,6 +52,8 @@ TListReader* readData(ifstream &infile){
 		    	if(time_end_pos==string::npos)
 					break;
 
+				if(stop_int>maxstop) maxstop=stop_int;
+
     		} /* end of iteration over the same trip */
             //cout<<"tam lista: "<<lista_trayectorias.size()<<endl;
 			cont_traj++;
@@ -61,7 +64,7 @@ TListReader* readData(ifstream &infile){
     	exit(EXIT_FAILURE);
 
     t->setTrips(cont_traj);
-    t->setStops(stops.size());
+    t->setStops(maxstop);
     t->setMaxtime(maxtime);
 
 

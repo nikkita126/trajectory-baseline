@@ -11,7 +11,7 @@ if [ "$_IS_ENV_SET" != "true" ]; then
 	exit 1
 fi
 
-SORTED_DATASET=""$_PROJECT_ROOT"/datasets/sorted_transantiago_encoded_trips.txt"
+SORTED_DATASET=""$_PROJECT_ROOT"/datasets/2013-04_et.txt"
 #SORTED_DATASET=""$_PROJECT_ROOT"/datasets/s_e_test_sample.txt"
 #echo "Sorted dataset: $SORTED_DATASET"
 #echo "Structure dir: $_STRUCTURE_DIR"

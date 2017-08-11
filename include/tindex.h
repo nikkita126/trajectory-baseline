@@ -72,9 +72,15 @@ public:
 
 	int includesQuery(uint s, uint t, uint interval, btree_map<uint, QueryResult > &results_table); // accessibility query for potential trajectories - NOT IMPLEMENTED YET
 
+	// checks if a stop is present in the current dataset
+	bool isInDataset(uint s);
+
+
 };
 
 	void loadListAndIndex(TList *tlist, ifstream &list_file, TIndex *tindex, ifstream &index_file);
+
+
 
 
 #endif

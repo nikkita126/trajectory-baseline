@@ -11,7 +11,7 @@ if [ "$_IS_ENV_SET" != "true" ]; then
 	exit 1
 fi
 
-SORTED_DATASET=""$_PROJECT_ROOT"/datasets/sorted_transantiago_encoded_trips.txt"
+SORTED_DATASET=""$_PROJECT_ROOT"/datasets/2013-04_et.txt"
 #SORTED_DATASET=""$_PROJECT_ROOT"/datasets/s_e_test_sample.txt"
 #echo "Sorted dataset: $SORTED_DATASET"
 #echo "Structure dir: $_STRUCTURE_DIR"
@@ -37,7 +37,7 @@ SORTED_DATASET=""$_PROJECT_ROOT"/datasets/sorted_transantiago_encoded_trips.txt"
 
 
 
-QUERY_FOLDER=""$_RESULTS_DIR"/reachability/sorted_transantiago_encoded_trips/t"$_T_IN"_t"$_T_END""
+QUERY_FOLDER=""$_RESULTS_DIR"/reachability/2013-04_et/t"$_T_IN"_t"$_T_END""
 mkdir -p "$QUERY_FOLDER"
 QUERY_FILE=""$_PROJECT_ROOT"/reach_queries/s1_s11270-t"$_T_IN"_t"$_T_END"+"$_ITV".txt"
 ./"$_PROJECT_ROOT"/bin/queryIndex "$SORTED_DATASET" "$_STRUCTURE_DIR" "$QUERY_FOLDER" < "$QUERY_FILE"
